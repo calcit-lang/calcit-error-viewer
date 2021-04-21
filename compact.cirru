@@ -39,6 +39,8 @@
             let
                 error-plugin $ use-prompt (>> states :error)
                   {} (:title "\"Error text") (:multiline? true) (:placeholder "\"content from .calcit-error.cirru")
+                    :input-style $ {} (:font-family ui/font-code) (:white-space :nowrap) (:min-height 320)
+                    :card-style $ {} (:max-width "\"1000px")
               div
                 {} $ :style
                   merge ui/row-middle $ {} (:height 40)

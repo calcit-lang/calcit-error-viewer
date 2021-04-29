@@ -31,8 +31,14 @@
                   some? $ :error-data store
                   comp-viewer (>> states :viewer) (:error-data store)
                   div
-                    {} $ :style (merge ui/expand ui/center)
-                    <> "\"Empty"
+                    {}
+                      :style $ merge ui/expand ui/center
+                        {} (:font-family ui/font-fancy) (:font-size 24) (:font-weight 300)
+                          :color $ hsl 0 0 70
+                          :cursor :pointer
+                      :on-click $ fn (e d!)
+                        .click $ js/document.querySelector "\"#load"
+                    <> "\"Click to load error info in Cirru Edn"
                 when dev? $ comp-reel (>> states :reel) reel ({})
         |comp-header $ quote
           defn comp-header (states)
@@ -41,14 +47,23 @@
                   {} (:title "\"Error text") (:multiline? true) (:placeholder "\"content from .calcit-error.cirru")
                     :input-style $ {} (:font-family ui/font-code) (:white-space :nowrap) (:min-height 320)
                     :card-style $ {} (:max-width "\"1000px")
+                    :validator $ fn (text) (println "\"got:" text)
+                      try
+                        do (parse-cirru text) nil
+                        fn (e) (str e)
               div
                 {} $ :style
                   merge ui/row-middle $ {} (:height 40)
-                    :border-bottom $ str "\"1px solid " (hsl 0 0 90)
+                    :border-top $ str "\"1px solid " (hsl 0 0 90)
+                    :border-right $ str "\"1px solid " (hsl 0 0 90)
                     :padding "\"0 8px"
+                    :position :absolute
+                    :bottom 0
+                    :left 0
+                    :width "\"calc(20% - 16px)"
                 <> "\"Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
                 =< 8 nil
-                button $ {} (:inner-text "\"Load") (:style ui/button)
+                button $ {} (:inner-text "\"Load") (:style ui/button) (:id "\"load")
                   :on-click $ fn (e d!)
                       :show error-plugin
                       , d! $ fn (text)
@@ -70,7 +85,8 @@
                       :border-right $ str "\"1px solid " (hsl 0 0 90)
                       :overflow :auto
                       :padding "\"0 0 120px 0"
-                  , & $ ->> error-data (:stack)
+                      :margin-bottom 40
+                  , & $ -> error-data (:stack)
                     map-indexed $ fn (idx info)
                       comp-entry (:def info)
                         = idx $ :pointer state
@@ -79,16 +95,17 @@
                 if (some? targat)
                   div
                     {} $ :style
-                      merge ui/expand ui/column $ {} (:padding 8)
+                      merge ui/expand ui/column $ {} (:padding "\"0 8px")
                     div
                       {} $ :style
                         {} (:color :red) (:font-size 16)
                       <> $ :message error-data
                     div
                       {} $ :style
-                        merge $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px")
+                        merge $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px") (:max-height "\"50vh") (:overflow :auto)
+                          :border $ str "\"1px solid " (hsl 0 0 90)
                       <> $ write-cirru-edn (:args targat)
-                    =< nil 16
+                    =< nil 8
                     div
                       {} $ :style
                         merge ui/expand $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px")
@@ -162,7 +179,7 @@
             listen-devtools! |a dispatch!
             .addEventListener js/window |beforeunload $ fn (event) (persist-storage!)
             repeat! 60 persist-storage!
-            let
+            ; let
                 raw $ .getItem js/localStorage (:storage-key config/site)
               when (some? raw)
                 dispatch! :hydrate-storage $ extract-cirru-edn (js/JSON.parse raw)

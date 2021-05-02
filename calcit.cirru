@@ -777,13 +777,10 @@
                                                       |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1619894241002)
                                                         :data $ {}
                                                           |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894241002) (:text |<>)
-                                                          |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1619894524208)
+                                                          |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1619894241002)
                                                             :data $ {}
-                                                              |T $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1619894241002)
-                                                                :data $ {}
-                                                                  |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894241002) (:text |write-cirru-edn)
-                                                                  |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894241002) (:text |arg)
-                                                              |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894525977) (:text |trim)
+                                                              |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619930799686) (:text |str)
+                                                              |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894241002) (:text |arg)
                                                   |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1619894234773) (:text |div)
                                                   |L $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1619894235245)
                                                     :data $ {}

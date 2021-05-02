@@ -117,7 +117,7 @@
                                 &= :syntax $ :kind target
                                 &= :macro $ :kind target
                               <> $ format-to-lisp arg
-                              <> $ trim (write-cirru-edn arg)
+                              <> $ str arg
                     =< nil 8
                     div
                       {} $ :style

@@ -76,7 +76,7 @@
                 state $ either (:data states)
                   {} $ :pointer 0
                 stack $ :stack error-data
-                targat $ get stack (:pointer state)
+                target $ get stack (:pointer state)
               div
                 {} $ :style (merge ui/expand ui/row)
                 div
@@ -88,11 +88,11 @@
                       :margin-bottom 40
                   , & $ -> error-data (:stack)
                     map-indexed $ fn (idx info)
-                      comp-entry (:def info)
+                      comp-entry (:def info) (:kind info)
                         = idx $ :pointer state
                         fn (d!)
                           d! cursor $ assoc state :pointer idx
-                if (some? targat)
+                if (some? target)
                   div
                     {} $ :style
                       merge ui/expand ui/column $ {} (:padding "\"0 8px")
@@ -104,7 +104,20 @@
                       {} $ :style
                         merge $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px") (:max-height "\"50vh") (:overflow :auto)
                           :border $ str "\"1px solid " (hsl 0 0 90)
-                      <> $ write-cirru-edn (:args targat)
+                      , & $ -> (:args target)
+                        map-indexed $ fn (idx arg)
+                          div
+                            {} $ :style ui/row-middle
+                            <> (str idx)
+                              {} (:margin "\"0 6px") (:font-size 12)
+                                :color $ hsl 0 0 80
+                                :font-family ui/font-code
+                            if
+                              or
+                                &= :syntax $ :kind target
+                                &= :macro $ :kind target
+                              <> $ format-to-lisp arg
+                              <> $ str arg
                     =< nil 8
                     div
                       {} $ :style
@@ -112,13 +125,13 @@
                           :border $ str "\"1px solid " (hsl 0 0 90)
                           :padding "\"8px 8px"
                       <> $ if
-                        list? $ :code targat
+                        list? $ :code target
                         trim $ write-cirru
-                          [] $ :code targat
-                        str $ :code targat
+                          [] $ :code target
+                        str $ :code target
                   div ({}) (=< "\"nothing")
         |comp-entry $ quote
-          defcomp comp-entry (entry selected? on-select)
+          defcomp comp-entry (entry kind selected? on-select)
             div
               {}
                 :style $ merge
@@ -130,6 +143,15 @@
                     :background-color $ hsl 0 0 96
                 :on-click $ fn (e d!) (on-select d!)
               <> entry
+              case kind (<> "\"fn")
+                :syntax $ <> "\"syntax"
+                  merge style-tag $ {}
+                    :background-color $ hsl 200 80 60
+                :macro $ <> "\"macro"
+                  merge style-tag $ {}
+                    :background-color $ hsl 20 80 70
+        |style-tag $ quote
+          def style-tag $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
       :proc $ quote ()
     |app.config $ {}
       :ns $ quote (ns app.config)

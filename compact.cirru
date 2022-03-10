@@ -86,10 +86,7 @@
                 cursor $ :cursor states
                 state $ either (:data states)
                   {} $ :pointer 0
-                stack $ -> (:stack error-data)
-                  filter $ fn (info)
-                    if show-core? true $ not
-                      .starts-with? (:def info) "\"calcit.core/"
+                stack $ :stack error-data
                 target $ get stack (:pointer state)
               div
                 {} $ :style (merge ui/expand ui/row)
@@ -104,10 +101,14 @@
                       merge ui/expand ui/column $ {} (:padding "\"20px 0 120px 0")
                     -> stack $ map-indexed
                       fn (idx info)
-                        [] idx $ comp-entry (:def info) (:kind info)
-                          = idx $ :pointer state
-                          fn (d!)
-                            d! cursor $ assoc state :pointer idx
+                        [] idx $ let
+                            selected? $ = idx (:pointer state)
+                          if
+                            and (not show-core?)
+                              .starts-with? (:def info) "\"calcit.core/"
+                            comp-tiny-entry (:def info) selected?
+                            comp-entry (:def info) (:kind info) selected? $ fn (d!)
+                              d! cursor $ assoc state :pointer idx
                 if (some? target)
                   div
                     {} $ :style
@@ -138,8 +139,9 @@
                                 {} $ :style ui/row-middle
                                 <> (str idx)
                                   {} (:margin "\"0 6px") (:font-size 12)
-                                    :color $ hsl 0 0 80
+                                    :color $ hsl 0 0 80 0.5
                                     :font-family ui/font-code
+                                =< 4 nil
                                 if
                                   or
                                     &= :syntax $ :kind target
@@ -201,6 +203,17 @@
                       :background-color $ hsl 20 80 38
         |style-tag $ quote
           def style-tag $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
+        |comp-tiny-entry $ quote
+          defn comp-tiny-entry (path selected?)
+            div
+              {} $ :style
+                merge
+                  {} (:padding "\"0 8px")
+                    :border-bottom $ str "\"1px solid " (hsl 0 0 50 0.3)
+                    :opacity 0.5
+                  if selected? $ {}
+                    :background-color $ hsl 0 0 22
+              <> path
     |app.config $ {}
       :ns $ quote (ns app.config)
       :defs $ {}

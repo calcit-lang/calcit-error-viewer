@@ -83,9 +83,8 @@
                   merge ui/row-middle $ {} (:height 40) (:padding "\"0 8px") (:width "\"calc(20% - 16px)")
                 <> "\"Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
                 =< 8 nil
-                button $ {} (:inner-text "\"Load")
-                  :style $ merge ui/button
-                    {} (:height "\"28px") (:line-height "\"28px") (:min-width 60)
+                a $ {} (:inner-text "\"Load Text")
+                  :style $ merge ui/link
                   :id "\"load"
                   :on-click $ fn (e d!)
                     .show error-plugin d! $ fn (text)
@@ -204,7 +203,7 @@
           def style-tag $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
       :ns $ quote
         ns app.comp.container $ :require ([] respo-ui.core :as ui)
-          [] respo.core :refer $ [] defcomp defeffect <> >> div button textarea span input list-> pre
+          [] respo.core :refer $ [] defcomp defeffect <> >> div button textarea span input list-> pre a
           [] respo.comp.space :refer $ [] =<
           [] reel.comp.reel :refer $ [] comp-reel
           respo.comp.inspect :refer $ comp-inspect
@@ -217,14 +216,10 @@
           "\"cirru-color" :refer $ generateHtml
     |app.config $ {}
       :defs $ {}
-        |cdn? $ quote
-          def cdn? $ cond
-              exists? js/window
-              , false
-            (exists? js/process) (= "\"true" js/process.env.cdn)
-            :else false
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+        |exposed-port $ quote
+          def exposed-port $ js/parseInt (get-env "\"exposed-port" "\"6011")
         |site $ quote
           def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/calcit-workflow/") (:title "\"Calcit") (:icon "\"http://cdn.tiye.me/logo/mvc-works.png") (:storage-key "\"workflow")
       :ns $ quote (ns app.config)
@@ -238,6 +233,15 @@
               and config/dev? $ not= op :states
               println "\"Dispatch:" op
             reset! *reel $ reel-updater updater @*reel op op-data
+        |fetch-error-file! $ quote
+          defn fetch-error-file! () (hint-fn async)
+            let
+                response $ js-await
+                  js/fetch $ str "\"http://localhost:" config/exposed-port "\"/load-error"
+              if (.-ok response)
+                dispatch! :set-error $ parse-cirru-edn
+                  js-await $ .!text response
+                js/console.error "\"Failed to load" response
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
@@ -251,11 +255,14 @@
                 and (.-metaKey event)
                   = "\"e" $ .-key event
                 .!click $ js/document.querySelector "\"#load"
+            fetch-error-file!
             repeat! 60 persist-storage!
             ; let
                 raw $ .!getItem js/localStorage (:storage-key config/site)
               when (some? raw)
                 dispatch! :hydrate-storage $ parse-cirru-edn raw
+            js/window.addEventListener "\"visibilitychange" $ fn (event)
+              if (= "\"visible" js/document.visibilityState) (fetch-error-file!)
             println "|App started."
         |mount-target $ quote
           def mount-target $ .querySelector js/document |.app

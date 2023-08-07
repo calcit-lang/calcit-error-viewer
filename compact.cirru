@@ -15,18 +15,16 @@
                 state $ either (:data states)
                   {} $ :content "\""
               div
-                {} $ :style
-                  merge ui/global ui/fullscreen ui/column $ {}
+                {}
+                  :class-name $ str-spaced css/global css/fullscreen css/column
+                  :style $ {}
                     :color $ hsl 0 0 80
                 if
                   some? $ :error-data store
                   comp-viewer (>> states :viewer) (:error-data store) (:show-core? store) (:cirru? store)
                   div
                     {}
-                      :style $ merge ui/expand ui/center
-                        {} (:font-family ui/font-fancy) (:font-size 24) (:font-weight 300)
-                          :color $ hsl 0 0 70
-                          :cursor :pointer
+                      :class-name $ str-spaced css/expand css/center css-main
                       :on-click $ fn (e d!)
                         .!click $ js/document.querySelector "\"#load"
                     memof-call comp-header (>> states :header) (:show-core? store)
@@ -79,8 +77,8 @@
                         do (parse-cirru-list text) nil
                         fn (e) (str e)
               div
-                {} $ :style
-                  merge ui/row-middle $ {} (:height 40) (:padding "\"0 8px") (:width "\"calc(20% - 16px)")
+                {} (:class-name css/row-middle)
+                  :style $ {} (:height 40) (:padding "\"0 8px") (:width "\"calc(20% - 16px)")
                 <> "\"Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
                 =< 8 nil
                 a $ {} (:inner-text "\"Load Text")
@@ -120,16 +118,17 @@
                 code-list $ if (some? target)
                   &cirru-quote:to-list $ :code target
               div
-                {} $ :style (merge ui/expand ui/row)
+                {} $ :class-name (str-spaced css/expand css/row)
                 div
-                  {} $ :style
-                    merge ui/column $ {} (:width "\"20%")
+                  {} (:class-name css/column)
+                    :style $ {} (:width "\"20%")
                       :border-right $ str "\"1px solid " (hsl 0 0 70 0.2)
                       :overflow :auto
                   memof-call comp-header (>> states :header) show-core?
                   list->
-                    {} $ :style
-                      merge ui/expand ui/column $ {} (:padding "\"20px 0 120px 0")
+                    {}
+                      :class-name $ str-spaced css/expand css/column
+                      :style $ {} (:padding "\"20px 0 120px 0")
                     -> stack $ map-indexed
                       fn (idx info)
                         [] idx $ let
@@ -142,11 +141,12 @@
                               d! cursor $ assoc state :pointer idx
                 if (some? target)
                   div
-                    {} $ :style
-                      merge ui/expand ui/column $ {} (:padding "\"0 8px")
+                    {}
+                      :class-name $ str-spaced css/expand css/column
+                      :style $ {} (:padding "\"0 8px")
                     div
-                      {} $ :style
-                        merge ui/row-parted $ {} (:color :red) (:font-size 16)
+                      {} (:class-name css/row-parted)
+                        :style $ {} (:color :red) (:font-size 16)
                       <> $ :message error-data
                       span $ {} (:inner-text "\"Cirru")
                         :style $ merge
@@ -156,9 +156,7 @@
                             :color $ hsl 200 90 80
                         :on-click $ fn (e d!) (d! :toggle-cirru nil)
                     div
-                      {} $ :style
-                        merge $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px") (:max-height "\"40vh") (:overflow :auto)
-                          :border $ str "\"1px solid " (hsl 0 0 60 0.3)
+                      {} $ :class-name css-args-area
                       if
                         empty? $ :args target
                         div ({})
@@ -181,39 +179,51 @@
                                   <> $ str arg
                     =< nil 8
                     div
-                      {} $ :style
-                        merge ui/expand ui/column $ {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px")
+                      {}
+                        :class-name $ str-spaced css/expand css/column css/font-code
+                        :style $ {} (:white-space :pre) (:line-height "\"21px")
                           :border $ str "\"1px solid " (hsl 0 0 60 0.2)
                           :padding "\"8px 8px"
-                      if
-                        list? $ nth code-list 1
+                      if (list? code-list)
                         if cirru?
                           div
-                            {} $ :style
-                              merge ui/expand $ {} (:background-color :black) (:padding "\"40px 8px 80px 8px")
-                            render-expr $ nth code-list 1
+                            {} (:class-name css/expand)
+                              :style $ {} (:background-color :black) (:padding "\"40px 8px 80px 8px")
+                            render-expr code-list
                           pre $ {}
                             :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
                             :innerHTML $ generateHtml
                               trim $ format-cirru
-                                [] $ nth code-list 1
+                                w-js-log $ [] (nth code-list 1)
                         <> $ str code-list
                   div ({}) (=< "\"nothing" nil)
+        |css-args-area $ quote
+          defstyle css-args-area $ {}
+            "\"&" $ merge
+              {} (:white-space :pre) (:font-family ui/font-code) (:line-height "\"21px") (:max-height "\"40vh") (:overflow :auto)
+                :border $ str "\"1px solid " (hsl 0 0 60 0.3)
+        |css-main $ quote
+          defstyle css-main $ {}
+            "\"&" $ {} (:font-family ui/font-fancy) (:font-size 24) (:font-weight 300)
+              :color $ hsl 0 0 70
+              :cursor :pointer
         |style-tag $ quote
           def style-tag $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
       :ns $ quote
-        ns app.comp.container $ :require ([] respo-ui.core :as ui)
-          [] respo.core :refer $ [] defcomp defeffect <> >> div button textarea span input list-> pre a
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
+        ns app.comp.container $ :require (respo-ui.core :as ui)
+          respo.core :refer $ defcomp defeffect <> >> div button textarea span input list-> pre a
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
           respo.comp.inspect :refer $ comp-inspect
-          [] respo-md.comp.md :refer $ [] comp-md
-          [] app.config :refer $ [] dev?
-          [] respo.util.format :refer $ [] hsl
-          [] memof.alias :refer $ [] memof-call
-          [] respo-alerts.core :refer $ [] use-prompt
+          respo-md.comp.md :refer $ comp-md
+          app.config :refer $ dev?
+          respo.util.format :refer $ hsl
+          memof.alias :refer $ memof-call
+          respo-alerts.core :refer $ use-prompt
           calcit-theme.comp.expr :refer $ render-expr
           "\"cirru-color" :refer $ generateHtml
+          respo.css :refer $ defstyle
+          respo-ui.css :as css
     |app.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -228,19 +238,19 @@
         |*reel $ quote
           defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
         |dispatch! $ quote
-          defn dispatch! (op op-data)
+          defn dispatch! (op)
             when
-              and config/dev? $ not= op :states
-              println "\"Dispatch:" op
-            reset! *reel $ reel-updater updater @*reel op op-data
+              and config/dev? $ not= (nth op 0) :states
+              js/console.log "\"Dispatch:" op
+            reset! *reel $ reel-updater updater @*reel op
         |fetch-error-file! $ quote
           defn fetch-error-file! () (hint-fn async)
             let
                 response $ js-await
                   js/fetch $ str "\"http://localhost:" config/exposed-port "\"/load-error"
               if (.-ok response)
-                dispatch! :set-error $ parse-cirru-edn
-                  js-await $ .!text response
+                dispatch! $ :: :set-error
+                  parse-cirru-edn $ js-await (.!text response)
                 js/console.error "\"Failed to load" response
         |main! $ quote
           defn main! ()
@@ -249,7 +259,7 @@
             render-app!
             add-watch *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |a dispatch!
-            .!addEventListener js/window |beforeunload $ fn (event) (persist-storage!)
+            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
             js/window.addEventListener "\"keydown" $ fn (event)
               if
                 and (.-metaKey event)
@@ -258,9 +268,9 @@
             fetch-error-file!
             repeat! 60 persist-storage!
             ; let
-                raw $ .!getItem js/localStorage (:storage-key config/site)
+                raw $ js/localStorage.getItem (:storage-key config/site)
               when (some? raw)
-                dispatch! :hydrate-storage $ parse-cirru-edn raw
+                dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
             js/window.addEventListener "\"visibilitychange" $ fn (event)
               if (= "\"visible" js/document.visibilityState) (fetch-error-file!)
             println "|App started."
@@ -308,13 +318,15 @@
     |app.updater $ {}
       :defs $ {}
         |updater $ quote
-          defn updater (store op data op-id op-time)
-            case-default op store
-              :states $ update-states store data
-              :set-error $ assoc store :error-data data
-              :toggle-core $ update store :show-core? not
-              :toggle-cirru $ update store :cirru? not
-              :hydrate-storage data
+          defn updater (store op op-id op-time)
+            tag-match op
+                :states cursor s
+                update-states store cursor s
+              (:set-error e) (assoc store :error-data e)
+              (:toggle-core) (update store :show-core? not)
+              (:toggle-cirru) (update store :cirru? not)
+              (:hydrate-storage d) d
+              _ $ do (eprintln "\"Unknown op:" op) store
       :ns $ quote
         ns app.updater $ :require
           [] respo.cursor :refer $ [] update-states

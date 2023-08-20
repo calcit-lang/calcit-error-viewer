@@ -193,8 +193,7 @@
                           pre $ {}
                             :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
                             :innerHTML $ generateHtml
-                              trim $ format-cirru
-                                w-js-log $ [] (nth code-list 1)
+                              trim $ format-cirru ([] code-list)
                         <> $ str code-list
                   div ({}) (=< "\"nothing" nil)
         |css-args-area $ quote

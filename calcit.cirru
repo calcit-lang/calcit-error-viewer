@@ -1447,17 +1447,10 @@
                                                               |j $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:type :expr)
                                                                 :data $ {}
                                                                   |T $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:text |format-cirru) (:type :leaf)
-                                                                  |j $ {} (:at 1691339438608) (:by |rJG4IHzWf) (:type :expr)
+                                                                  |n $ {} (:at 1692498018746) (:by |rJG4IHzWf) (:type :expr)
                                                                     :data $ {}
-                                                                      |D $ {} (:at 1691339441524) (:by |rJG4IHzWf) (:text |w-js-log) (:type :leaf)
-                                                                      |T $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:type :expr)
-                                                                        :data $ {}
-                                                                          |T $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:text |[]) (:type :leaf)
-                                                                          |j $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:type :expr)
-                                                                            :data $ {}
-                                                                              |T $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:text |nth) (:type :leaf)
-                                                                              |f $ {} (:at 1658661192463) (:by |rJG4IHzWf) (:text |code-list) (:type :leaf)
-                                                                              |r $ {} (:at 1637082071558) (:by |rJG4IHzWf) (:text |1) (:type :leaf)
+                                                                      |D $ {} (:at 1692498019328) (:by |rJG4IHzWf) (:text |[]) (:type :leaf)
+                                                                      |T $ {} (:at 1692497643308) (:by |rJG4IHzWf) (:text |code-list) (:type :leaf)
                                       |v $ {} (:at 1637078693622) (:by |rJG4IHzWf) (:type :expr)
                                         :data $ {}
                                           |D $ {} (:at 1637078695228) (:by |rJG4IHzWf) (:text |<>) (:type :leaf)

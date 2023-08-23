@@ -39,34 +39,26 @@
               let[] (ns def-name) (.split entry "\"/")
                 div
                   {}
-                    :style $ merge ui/row-parted
-                      {} (:padding "\"0 8px")
-                        :border-bottom $ str "\"1px solid " (hsl 0 0 50 0.3)
-                        :cursor :pointer
-                        :min-height "\"48px"
-                      if selected? $ {}
-                        :background-color $ hsl 0 0 22
+                    :class-name $ str-spaced css/row-parted style-entry
+                    :style $ if selected?
+                      {} $ :background-color (hsl 0 0 22)
                     :on-click $ fn (e d!) (on-select d!)
                   div
                     {} $ :style
                       merge $ {} (:display :inline-block) (:vertical-align :top)
                     div
-                      {} $ :style
-                        {} (:line-height "\"22px") (:font-family ui/font-code)
+                      {} (:class-name css/font-code)
+                        :style $ {} (:line-height "\"22px")
                       <> $ or def-name "\"-"
                     div
                       {} $ :style
                         {} (:font-size 10) (:line-height "\"14px")
                       <> $ or ns "\"-"
                   case-default kind
-                    <> "\"fn" $ merge style-tag
-                      {} $ :background-color (hsl 20 90 30)
-                    :syntax $ <> "\"syntax"
-                      merge style-tag $ {}
-                        :background-color $ hsl 200 80 30
-                    :macro $ <> "\"macro"
-                      merge style-tag $ {}
-                        :background-color $ hsl 20 80 38
+                    <> (str kind) 
+                    :syntax $ <> "\"syntax" (str-spaced style-tag style-color-syntax)
+                    :macro $ <> "\"macro" (str-spaced style-tag style-color-macro)
+                    :fn $ <> "\"fn" (str-spaced style-tag style-color-fn)
         |comp-header $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-header (states show-core?)
@@ -84,9 +76,7 @@
                     :style $ {} (:height 40) (:padding "\"0 8px") (:width "\"calc(20% - 16px)")
                   <> "\"Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
                   =< 8 nil
-                  a $ {} (:inner-text "\"Load Text")
-                    :style $ merge ui/link
-                    :id "\"load"
+                  a $ {} (:inner-text "\"Load Text") (:class-name css/link) (:id "\"load")
                     :on-click $ fn (e d!)
                       .show error-plugin d! $ fn (text)
                         d! :set-error $ parse-cirru-edn text
@@ -103,13 +93,9 @@
           :code $ quote
             defn comp-tiny-entry (path selected?)
               div
-                {} $ :style
-                  merge
-                    {} (:padding "\"0 8px")
-                      :border-bottom $ str "\"1px solid " (hsl 0 0 50 0.3)
-                      :opacity 0.5
-                    if selected? $ {}
-                      :background-color $ hsl 0 0 22
+                {} (:class-name style-tiny-entry)
+                  :style $ if selected?
+                    {} $ :background-color (hsl 0 0 22)
                 <> path
         |comp-viewer $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -170,7 +156,7 @@
                             -> (:args target)
                               map-indexed $ fn (idx arg)
                                 [] idx $ div
-                                  {} $ :style ui/row-middle
+                                  {} $ :class-name css/row-middle
                                   <> (str idx)
                                     {} (:margin "\"0 6px") (:font-size 12)
                                       :color $ hsl 0 0 80 0.5
@@ -213,9 +199,38 @@
               "\"&" $ {} (:font-family ui/font-fancy) (:font-size 24) (:font-weight 300)
                 :color $ hsl 0 0 70
                 :cursor :pointer
+        |style-color-fn $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-color-fn $ {}
+              "\"&" $ {}
+                :background-color $ hsl 20 90 30
+        |style-color-macro $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-color-macro $ {}
+              "\"&" $ {}
+                :background-color $ hsl 20 80 38
+        |style-color-syntax $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-color-syntax $ {}
+              "\"&" $ {}
+                :background-color $ hsl 200 80 30
+        |style-entry $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-entry $ {}
+              "\"&" $ {} (:padding "\"0 8px")
+                :border-bottom $ str "\"1px solid " (hsl 0 0 50 0.3)
+                :cursor :pointer
+                :min-height "\"48px"
         |style-tag $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def style-tag $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
+            defstyle style-tag $ {}
+              "\"&" $ {} (:color :white) (:margin-left 8) (:padding "\"0 4px") (:font-size 12) (:line-height "\"18px") (:display :inline-block) (:border-radius "\"4px")
+        |style-tiny-entry $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-tiny-entry $ {}
+              "\"&" $ {} (:padding "\"0 8px")
+                :border-bottom $ str "\"1px solid " (hsl 0 0 50 0.3)
+                :opacity 0.5
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require (respo-ui.core :as ui)

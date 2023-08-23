@@ -37,3 +37,12 @@ body * {
 ::-webkit-resizer {
   background-color:transparent;
 }
+
+
+.app .cirru-color .indentation {
+  border-left: 1px solid hsl(0deg 0% 100% / 18%);
+}
+
+.app .cirru-color .cirru-line:hover .indentation {
+  border-left: 1px solid hsl(0deg 0% 100% / 50%);
+}

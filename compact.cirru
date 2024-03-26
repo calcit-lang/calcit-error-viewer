@@ -4,7 +4,7 @@
     :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
   :entries $ {}
   :files $ {}
-    |app.comp.container $ {}
+    |app.comp.container $ %{} :FileEntry
       :defs $ {}
         |comp-container $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -28,7 +28,7 @@
                         :class-name $ str-spaced css/expand css/center css-main
                         :on-click $ fn (e d!)
                           .!click $ js/document.querySelector "\"#load"
-                      memof-call comp-header (>> states :header) (:show-core? store)
+                      memof1-call comp-header (>> states :header) (:show-core? store)
                       <> "\"Click to load error info in Cirru Edn"
                   when dev? $ comp-reel (>> states :reel) reel ({})
                   when dev? $ comp-inspect "\"Store" store
@@ -115,7 +115,7 @@
                       :style $ {} (:width "\"20%")
                         :border-right $ str "\"1px solid " (hsl 0 0 70 0.2)
                         :overflow :auto
-                    memof-call comp-header (>> states :header) show-core?
+                    memof1-call comp-header (>> states :header) show-core?
                     list->
                       {}
                         :class-name $ str-spaced css/expand css/column
@@ -241,13 +241,13 @@
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.util.format :refer $ hsl
-            memof.alias :refer $ memof-call
+            memof.once :refer $ memof1-call
             respo-alerts.core :refer $ use-prompt
             calcit-theme.comp.expr :refer $ render-expr
             "\"cirru-color" :refer $ generateHtml
             respo.css :refer $ defstyle
             respo-ui.css :as css
-    |app.config $ {}
+    |app.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -260,7 +260,7 @@
             def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/calcit-workflow/") (:title "\"Calcit") (:icon "\"http://cdn.tiye.me/logo/mvc-works.png") (:storage-key "\"workflow")
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns app.config)
-    |app.main $ {}
+    |app.main $ %{} :FileEntry
       :defs $ {}
         |*reel $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -307,7 +307,7 @@
               println "|App started."
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def mount-target $ .querySelector js/document |.app
+            def mount-target $ js/document.querySelector |.app
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! () $ js/localStorage.setItem (:storage-key config/site)
@@ -346,7 +346,7 @@
             [] app.config :as config
             "\"./calcit.build-errors" :default build-errors
             "\"bottom-tip" :default hud!
-    |app.schema $ {}
+    |app.schema $ %{} :FileEntry
       :defs $ {}
         |store $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -355,7 +355,7 @@
                 :cursor $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns app.schema)
-    |app.updater $ {}
+    |app.updater $ %{} :FileEntry
       :defs $ {}
         |updater $ %{} :CodeEntry (:doc |)
           :code $ quote

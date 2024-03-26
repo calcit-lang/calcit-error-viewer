@@ -4,7 +4,7 @@
     :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
   :entries $ {}
   :files $ {}
-    |app.comp.container $ {}
+    |app.comp.container $ %{} :FileEntry
       :defs $ {}
         |comp-container $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1499755354983) (:by nil)
@@ -157,7 +157,7 @@
                                                   |j $ %{} :Leaf (:at 1619682522489) (:by |rJG4IHzWf) (:text "|\"#load")
                               |n $ %{} :Expr (:at 1637077096189) (:by |rJG4IHzWf)
                                 :data $ {}
-                                  |T $ %{} :Leaf (:at 1637077096189) (:by |rJG4IHzWf) (:text |memof-call)
+                                  |T $ %{} :Leaf (:at 1711479113482) (:by |rJG4IHzWf) (:text |memof1-call)
                                   |j $ %{} :Leaf (:at 1637077096189) (:by |rJG4IHzWf) (:text |comp-header)
                                   |r $ %{} :Expr (:at 1637077096189) (:by |rJG4IHzWf)
                                     :data $ {}
@@ -854,7 +854,7 @@
                                           |j $ %{} :Leaf (:at 1615566490402) (:by |rJG4IHzWf) (:text |:auto)
                           |n $ %{} :Expr (:at 1637077103290) (:by |rJG4IHzWf)
                             :data $ {}
-                              |T $ %{} :Leaf (:at 1637077103290) (:by |rJG4IHzWf) (:text |memof-call)
+                              |T $ %{} :Leaf (:at 1711479093167) (:by |rJG4IHzWf) (:text |memof1-call)
                               |j $ %{} :Leaf (:at 1637077103290) (:by |rJG4IHzWf) (:text |comp-header)
                               |r $ %{} :Expr (:at 1637077103290) (:by |rJG4IHzWf)
                                 :data $ {}
@@ -1751,11 +1751,11 @@
                         |j $ %{} :Leaf (:at 1615543697838) (:by |rJG4IHzWf) (:text |hsl)
                 |yv $ %{} :Expr (:at 1615543900447) (:by |rJG4IHzWf)
                   :data $ {}
-                    |j $ %{} :Leaf (:at 1615543904786) (:by |rJG4IHzWf) (:text |memof.alias)
+                    |j $ %{} :Leaf (:at 1711479096810) (:by |rJG4IHzWf) (:text |memof.once)
                     |r $ %{} :Leaf (:at 1615543905701) (:by |rJG4IHzWf) (:text |:refer)
                     |v $ %{} :Expr (:at 1615543905910) (:by |rJG4IHzWf)
                       :data $ {}
-                        |j $ %{} :Leaf (:at 1615543908297) (:by |rJG4IHzWf) (:text |memof-call)
+                        |j $ %{} :Leaf (:at 1711479098282) (:by |rJG4IHzWf) (:text |memof1-call)
                 |yx $ %{} :Expr (:at 1615544499543) (:by |rJG4IHzWf)
                   :data $ {}
                     |j $ %{} :Leaf (:at 1615544641179) (:by |rJG4IHzWf) (:text |respo-alerts.core)
@@ -1789,7 +1789,7 @@
                     |T $ %{} :Leaf (:at 1691338789773) (:by |rJG4IHzWf) (:text |respo-ui.css)
                     |b $ %{} :Leaf (:at 1691338791688) (:by |rJG4IHzWf) (:text |:as)
                     |h $ %{} :Leaf (:at 1691338792763) (:by |rJG4IHzWf) (:text |css)
-    |app.config $ {}
+    |app.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1544873875614) (:by |rJG4IHzWf)
@@ -1855,7 +1855,7 @@
           :data $ {}
             |T $ %{} :Leaf (:at 1527788237503) (:by |root) (:text |ns)
             |j $ %{} :Leaf (:at 1527788237503) (:by |root) (:text |app.config)
-    |app.main $ {}
+    |app.main $ %{} :FileEntry
       :defs $ {}
         |*reel $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1499755354983) (:by nil)
@@ -2144,8 +2144,7 @@
               |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |mount-target)
               |r $ %{} :Expr (:at 1499755354983) (:by nil)
                 :data $ {}
-                  |T $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |.querySelector)
-                  |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |js/document)
+                  |j $ %{} :Leaf (:at 1711479144329) (:by |rJG4IHzWf) (:text |js/document.querySelector)
                   |r $ %{} :Leaf (:at 1499755354983) (:by |root) (:text ||.app)
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1533919515671) (:by |rJG4IHzWf)
@@ -2372,7 +2371,7 @@
                     |T $ %{} :Leaf (:at 1637074995513) (:by |rJG4IHzWf) (:text "|\"bottom-tip")
                     |j $ %{} :Leaf (:at 1637074995513) (:by |rJG4IHzWf) (:text |:default)
                     |r $ %{} :Leaf (:at 1637074995513) (:by |rJG4IHzWf) (:text |hud!)
-    |app.schema $ {}
+    |app.schema $ %{} :FileEntry
       :defs $ {}
         |store $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1499755354983) (:by nil)
@@ -2411,7 +2410,7 @@
           :data $ {}
             |T $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |ns)
             |j $ %{} :Leaf (:at 1499755354983) (:by |root) (:text |app.schema)
-    |app.updater $ {}
+    |app.updater $ %{} :FileEntry
       :defs $ {}
         |updater $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1499755354983) (:by nil)

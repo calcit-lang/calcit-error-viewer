@@ -8,35 +8,45 @@
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
+        'click-load! $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn click-load! () $ if-let
+              target $ browser/query-selector |#load
+              unsafe-coerce
+                .!click $ unsafe-coerce target js-ffi.browser/DomElementHost
+                , 'Unit
+              unsafe-coerce nil 'Unit
+          :examples $ []
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ []
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
               let
-                  store $ :store reel
+                  store $ decode-map-as (reel-schema/read-field reel :store) app.schema/Store
                   states $ :states store
-                  cursor $ either (:cursor states) ([])
-                  state $ either (:data states)
-                    {} $ :content |
                 div
                   {}
                     :class-name $ str-spaced css/global css/fullscreen css/column
                     :style $ {}
                       :color $ hsl 0 0 80
-                  if
-                    some? $ :error-data store
-                    comp-viewer (>> states :viewer) (:error-data store) (:show-core? store) (:cirru? store)
+                  if-let
+                    error-data $ :error-data store
+                    comp-viewer (>> states :viewer) error-data (:show-core? store) (:cirru? store)
                     div
                       {}
                         :class-name $ str-spaced css/expand css/center css-main
-                        :on-click $ fn (e d!)
-                          .!click $ js/document.querySelector |#load
+                        :on-click $ fn (e d!) (click-load!)
                       memof1-call comp-header (>> states :header) (:show-core? store)
                       <> "|Click to load error info in Cirru Edn"
                   when dev? $ comp-reel (>> states :reel) reel ({})
                   when dev? $ comp-inspect |Store store
                     {} $ :bottom 4
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'Dynamic
         'comp-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-entry (entry kind selected? on-select)
@@ -64,7 +74,9 @@
                     :macro $ <> |macro (str-spaced style-tag style-color-macro)
                     :fn $ <> |fn (str-spaced style-tag style-color-fn)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'String 'Tag 'Bool 'Fn
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn comp-header (states show-core?)
@@ -88,11 +100,11 @@
                         d! :set-error $ parse-cirru-edn text
                   =< 8 nil
                   span $ {} (:inner-text |calcit.core)
-                    :style $ merge
+                    :style $ if show-core?
+                      {} (:font-size 12) (:cursor :pointer) (:user-select :none)
+                        :color $ hsl 200 90 80
                       {} (:font-size 12) (:cursor :pointer) (:user-select :none)
                         :color $ hsl 0 0 40
-                      if show-core? $ {}
-                        :color $ hsl 200 90 80
                     :on-click $ fn (e d!) (d! :toggle-core nil)
                   .render error-plugin
           :examples $ []
@@ -106,17 +118,25 @@
                     {} $ :background-color (hsl 0 0 22)
                 <> path
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'String 'Bool
         'comp-viewer $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-viewer (states error-data show-core? cirru?)
               let
-                  cursor $ :cursor states
-                  state $ either (:data states)
-                    {} $ :pointer 0
+                  cursor $ option:unwrap-or (get states :cursor) ([])
+                  state $ decode-map-as
+                    option:unwrap-or (get states :data)
+                      {} $ :pointer 0
+                    , app.schema/ViewerState
                   stack $ :stack error-data
-                  target $ get stack (:pointer state)
-                  code-list $ if (some? target)
+                  target-option $ get stack (:pointer state)
+                  target $ option:unwrap-or target-option
+                    %{} app.schema/ErrorFrame (:def |) (:kind :unknown)
+                      :args $ []
+                      :code $ quote ([])
+                  code-list $ if (option:some? target-option)
                     &cirru-quote:to-list $ :code target
                 div
                   {} $ :class-name (str-spaced css/expand css/row)
@@ -144,10 +164,10 @@
                                 , selected?
                               comp-entry
                                 option:unwrap-or (get info :def) |
-                                :kind info
+                                :kind $ assert-type info app.schema/ErrorFrame
                                 , selected? $ fn (d!)
                                   d! cursor $ assoc state :pointer idx
-                  if (some? target)
+                  if (option:some? target-option)
                     div
                       {}
                         :class-name $ str-spaced css/expand css/column
@@ -157,11 +177,11 @@
                           :style $ {} (:color :red) (:font-size 16)
                         <> $ :message error-data
                         span $ {} (:inner-text |Cirru)
-                          :style $ merge
+                          :style $ if cirru?
+                            {} (:cursor :pointer) (:user-select :none)
+                              :color $ hsl 200 90 80
                             {} (:cursor :pointer) (:user-select :none)
                               :color $ hsl 0 0 40
-                            if cirru? $ {}
-                              :color $ hsl 200 90 80
                           :on-click $ fn (e d!) (d! :toggle-cirru nil)
                       div
                         {} $ :class-name css-args-area
@@ -205,7 +225,9 @@
                           <> $ str code-list
                     div ({}) (=< |nothing nil)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'Map 'app.schema/ErrorData 'Bool 'Bool
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle css-args-area $ {}
@@ -282,16 +304,21 @@
             |cirru-color :refer $ generateHtml
             respo.css :refer $ defstyle
             respo-ui.css :as css
+            app.schema :as schema
+            reel.schema :as reel-schema
+            js-ffi.browser :as browser
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |release)
+            def dev? $ = |dev
+              option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Dynamic
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def exposed-port $ js/parseInt (get-env |exposed-port |6011)
+            def exposed-port $ js/parseInt
+              option:unwrap-or (get-env |exposed-port) |6011
           :examples $ []
           :schema $ :: 'Dynamic
         'site $ %{} 'CodeEntry (:doc |)
@@ -308,18 +335,31 @@
             defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
           :schema $ :: 'Dynamic
+        'click-load! $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn click-load! () $ if-let
+              target $ browser/query-selector |#load
+              unsafe-coerce
+                .!click $ unsafe-coerce target js-ffi.browser/DomElementHost
+                , 'Unit
+              unsafe-coerce nil 'Unit
+          :examples $ []
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ []
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
-              when
-                and config/dev? $ not= (nth op 0) :states
-                js/console.log |Dispatch: op
+              when config/dev? $ match op
+                (:states _ _) (do &unit)
+                _ $ js/console.log |Dispatch: op
               reset! *reel $ reel-updater updater @*reel op
           :examples $ []
           :schema $ :: 'Dynamic
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn fetch-error-file! () (hint-fn async)
+            defn fetch-error-file! ()
+              hint-fn $ {} (:async true)
               let
                   response $ js-await
                     js/fetch $ str |http://localhost: config/exposed-port |/load-error
@@ -337,20 +377,24 @@
               render-app!
               add-watch *reel :changes $ fn (reel prev) (render-app!)
               listen-devtools! |a dispatch!
-              js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
-              js/window.addEventListener |keydown $ fn (event)
+              browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
+              browser/add-event-listener! |keydown $ fn (event)
                 if
-                  and (.-metaKey event)
-                    = |e $ .-key event
-                  .!click $ js/document.querySelector |#load
+                  and
+                    unsafe-coerce (.-metaKey event) 'Bool
+                    = |e $ unsafe-coerce (.-key event) 'String
+                  click-load!
+                  unsafe-coerce nil 'Unit
               fetch-error-file!
               repeat! 60 persist-storage!
               ; let
-                (raw (js/localStorage.getItem (:storage-key config/site)))
+                raw $ js/localStorage.getItem (:storage-key config/site)
                 when (some? raw)
                   dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
-              js/window.addEventListener |visibilitychange $ fn (event)
-                if (= |visible js/document.visibilityState) (fetch-error-file!)
+              browser/add-event-listener! |visibilitychange $ fn (event)
+                match (browser/visibility-state)
+                  (:visible) (fetch-error-file!)
+                  _ $ do &unit
               println "|App started."
           :examples $ []
           :schema $ :: 'Dynamic
@@ -407,11 +451,39 @@
             [] app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
+            js-ffi.browser :as browser
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'ErrorData $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defstruct ErrorData (:message 'String)
+              :stack $ :: 'List 'app.schema/ErrorFrame
+          :examples $ []
+          :schema $ :: 'StructDef
+        'ErrorFrame $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defstruct ErrorFrame (:def 'String) (:kind 'Tag)
+              :args $ :: 'List 'Dynamic
+              :code 'CirruQuote
+          :examples $ []
+          :schema $ :: 'StructDef
+        'Store $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defstruct Store
+              :error-data $ :: 'Option 'app.schema/ErrorData
+              :show-core? 'Bool
+              :cirru? 'Bool
+              :states 'Map
+          :examples $ []
+          :schema $ :: 'StructDef
+        'ViewerState $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defstruct ViewerState $ :pointer 'Number
+          :examples $ []
+          :schema $ :: 'StructDef
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def store $ {} (:error-data nil) (:show-core? true) (:cirru? false)
+            def store $ %{} Store (:error-data %none) (:show-core? true) (:cirru? false)
               :states $ {}
                 :cursor $ []
           :examples $ []
@@ -423,16 +495,25 @@
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
-              tag-match op
-                (:states cursor s) (update-states store cursor s)
-                (:set-error e) (assoc store :error-data e)
+              match op
+                (:states cursor s)
+                  assoc store :states $ update-states (:states store) cursor s
+                (:set-error e)
+                  %{} app.schema/Store
+                    :error-data $ %some (decode-map-as e app.schema/ErrorData)
+                    :show-core? $ :show-core? store
+                    :cirru? $ :cirru? store
+                    :states $ :states store
                 (:toggle-core) (update store :show-core? not)
                 (:toggle-cirru) (update store :cirru? not)
-                (:hydrate-storage d) d
+                (:hydrate-storage d) (decode-map-as d app.schema/Store)
                 _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'app.schema/Store)
+              :args $ [] 'app.schema/Store 'Dynamic 'Dynamic 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.updater $ :require
             [] respo.cursor :refer $ [] update-states
+            app.schema :as schema

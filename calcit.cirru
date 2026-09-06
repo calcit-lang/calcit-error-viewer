@@ -136,10 +136,17 @@
                               selected? $ = idx (:pointer state)
                             if
                               and (not show-core?)
-                                .starts-with? (:def info) |calcit.core/
-                              comp-tiny-entry (:def info) selected?
-                              comp-entry (:def info) (:kind info) selected? $ fn (d!)
-                                d! cursor $ assoc state :pointer idx
+                                .starts-with?
+                                  option:unwrap-or (get info :def) |
+                                  , |calcit.core/
+                              comp-tiny-entry
+                                option:unwrap-or (get info :def) |
+                                , selected?
+                              comp-entry
+                                option:unwrap-or (get info :def) |
+                                :kind info
+                                , selected? $ fn (d!)
+                                  d! cursor $ assoc state :pointer idx
                   if (some? target)
                     div
                       {}

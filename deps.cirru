@@ -1,5 +1,5 @@
 
-{} (:calcit-version |0.13.77)
+{} (:calcit-version |0.14.16)
   :version |0.0.1
   :dependencies $ {} (|Cirru/calcit-theme.calcit |0.4.4)
     |Respo/alerts.calcit |0.10.30

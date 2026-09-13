@@ -294,9 +294,12 @@
           :schema $ :: 'Dynamic
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def exposed-port
-            result:unwrap-or
-              parse-float $ option:unwrap-or (get-env |exposed-port) |6011
-              , 6011
+            let
+                raw $ option:unwrap-or (get-env |exposed-port) |6011
+                parsed $ result:unwrap-or (parse-float raw) 6011
+              if
+                and (round? parsed) (>= parsed 1) (<= parsed 65535)
+                , parsed 6011
           :examples $ []
           :schema $ :: 'Number
         'site $ %{} 'CodeEntry (:doc |)

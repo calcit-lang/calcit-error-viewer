@@ -3,8 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :js)
-      :reload-fn 'app.main/reload!
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
       :type-slots $ {}
@@ -22,12 +21,11 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
+            :features $ #{} :js-ffi
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ decode-map-as
-                  reel-schema/read-field reel :store
-                  , app.schema/Store
+                store $ decode-map-as (reel-schema/read-field reel :store) app.schema/Store
                 states $ :states store
               div
                 {}
@@ -45,11 +43,11 @@
                 when dev? $ comp-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |Store store $ {} (:bottom 4)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
         'comp-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-entry (entry kind selected? on-select)
-            let[] (ns def-name) (.split entry |/)
+            let[] (ns def-name) (split entry |/)
               div
                 {}
                   :class-name $ str-spaced css/row-parted style-entry
@@ -78,8 +76,7 @@
           :code $ quote $ defn comp-header (states show-core?)
             let
                 error-plugin $ use-prompt (>> states :error)
-                  {} (:title "|Error text") (:multiline? true)
-                    :placeholder "|content from .calcit-error.cirru"
+                  {} (:title "|Error text") (:multiline? true) (:placeholder "|content from .calcit-error.cirru")
                     :input-style $ {} (:font-family ui/font-code) (:white-space :nowrap) (:min-height 320)
                     :card-style $ {} $ :max-width |1000px
                     :validator $ fn (text) (println |got: text)
@@ -88,8 +85,7 @@
                         fn (e) (str e)
               div
                 {} (:class-name css/row-middle)
-                  :style $ {} (:height 40) (:padding "|0 8px")
-                    :width "|calc(20% - 16px)"
+                  :style $ {} (:height 40) (:padding "|0 8px") (:width "|calc(20% - 16px)")
                 <> "|Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
                 =< 8 nil
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
@@ -106,7 +102,8 @@
                   :on-click $ fn (e d!) (d! :toggle-core nil)
                 .render error-plugin
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Bool
         'comp-tiny-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tiny-entry (path selected?)
             div
@@ -126,7 +123,9 @@
                     {} $ :pointer 0
                   , app.schema/ViewerState
                 stack $ :stack error-data
-                target-option $ get stack $ :pointer state
+                target-option $ assert-type
+                  get stack $ :pointer state
+                  :: 'Option 'app.schema/ErrorFrame
                 target $ option:unwrap-or target-option $ %{} app.schema/ErrorFrame (:def |) (:kind :unknown)
                   :args $ []
                   :code $ quote $ []
@@ -149,14 +148,9 @@
                           selected? $ = idx $ :pointer state
                         if
                           and (not show-core?)
-                            .starts-with?
-                              option:unwrap-or (get info :def) |
-                              , |calcit.core/
-                          comp-tiny-entry
-                            option:unwrap-or (get info :def) |
-                            , selected?
-                          comp-entry
-                            option:unwrap-or (get info :def) |
+                            starts-with? (:def info) |calcit.core/
+                          comp-tiny-entry (:def info) selected?
+                          comp-entry (:def info)
                             :kind $ assert-type info app.schema/ErrorFrame
                             , selected? $ fn (d!)
                               d! cursor $ assoc state :pointer idx
@@ -209,9 +203,7 @@
                         if cirru?
                           div
                             {} (:class-name css/expand)
-                              :style $ {}
-                                :background-color :black
-                                :padding "|40px 8px 80px 8px"
+                              :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
                             render-expr code-list
                           pre $ {}
                             :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
@@ -221,7 +213,7 @@
                   div ({}) (=< |nothing nil)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Map 'app.schema/ErrorData 'Bool 'Bool
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/ErrorData 'Bool 'Bool
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
             {} $ |& $ merge
@@ -302,18 +294,14 @@
           :schema $ :: 'Dynamic
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def exposed-port
-            js/parseInt $ option:unwrap-or (get-env |exposed-port) |6011
+            result:unwrap-or
+              parse-float $ option:unwrap-or (get-env |exposed-port) |6011
+              , 6011
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Number
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
-            {}
-              :dev-ui |http://localhost:8100/main-fonts.css
-              :release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css
-              :cdn-url |http://cdn.tiye.me/calcit-workflow/
-              :title |Calcit
-              :icon |http://cdn.tiye.me/logo/mvc-works.png
-              :storage-key |workflow
+            {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/calcit-workflow/) (:title |Calcit) (:icon |http://cdn.tiye.me/logo/mvc-works.png) (:storage-key |workflow)
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -336,6 +324,7 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
+            :features $ #{} :js-ffi
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ match op
@@ -343,19 +332,22 @@
               _ $ js/console.log |Dispatch: op
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! ()
             hint-fn $ {} $ :async true
             let
-                response $ js-await $ js/fetch
-                  str |http://localhost: config/exposed-port |/load-error
+                response $ js-await $ js/fetch (str |http://localhost: config/exposed-port |/load-error)
               if (.-ok response)
                 dispatch! $ :: :set-error $ parse-cirru-edn
                   js-await $ .!text response
                 js/console.error "|Failed to load" response
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -378,52 +370,65 @@
               when (some? raw)
                 dispatch! $ :: :hydrate-storage $ parse-cirru-edn raw
             browser/add-event-listener! |visibilitychange $ fn (event)
-              match
-                browser/visibility-state
-                (:visible)
-                  fetch-error-file!
+              match (browser/visibility-state)
+                (:visible) (fetch-error-file!)
                 _ $ do &unit
             println "|App started."
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target
-            js/document.querySelector |.app
+          :code $ quote $ def mount-target (js/document.querySelector |.app)
           :examples $ []
           :schema $ :: 'Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ :store @*reel
+            do
+              js/localStorage.setItem (:storage-key config/site)
+                format-cirru-edn $ :store @*reel
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
               do (remove-watch *reel :changes) (clear-cache!)
                 add-watch *reel :changes $ fn (reel prev) (render-app!)
-                reset! *reel $ refresh-reel @*reel schema/store updater
+                reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
                 hud! |ok~ |Ok
               hud! |error build-errors
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! (js/document.querySelector |.app) (comp-container @*reel) dispatch!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
-            js/setTimeout
-              fn () (cb)
-                repeat! (* 1000 duration) cb
-              * 1000 duration
+            do
+              js/setTimeout
+                fn () (cb)
+                  repeat! (* 1000 duration) cb
+                * 1000 duration
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Number $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ []
+            :features $ #{} :js-ffi
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn snippets () (println config/cdn?)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -489,8 +494,7 @@
               (:hydrate-storage d) (decode-map-as d app.schema/Store)
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :return 'app.schema/Store
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
             :args $ [] 'app.schema/Store 'Dynamic 'Dynamic 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater

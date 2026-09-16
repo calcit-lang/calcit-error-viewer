@@ -1,8 +1,8 @@
 
-{} (:calcit-version |0.14.17)
+{} (:calcit-version |0.15.2)
   :version |0.0.1
   :dependencies $ {} (|Cirru/calcit-theme.calcit |0.4.5)
-    |Respo/alerts.calcit |0.10.35
+    |Respo/alerts.calcit |0.10.37
     |Respo/reel.calcit |0.6.24
     |Respo/respo-markdown.calcit |0.4.37
     |Respo/respo-ui.calcit |0.7.23

@@ -126,9 +126,8 @@
                 target-option $ assert-type
                   get stack $ :pointer state
                   :: 'Option 'app.schema/ErrorFrame
-                target $ option:unwrap-or target-option $ %{} app.schema/ErrorFrame (:def |) (:kind :unknown)
-                  :args $ []
-                  :code $ quote $ []
+                target $ option:unwrap-or target-option $ app.schema/ErrorFrame :def | :kind :unknown :args ([]) :code
+                  quote $ []
                 code-list $ if (option:some? target-option)
                   &cirru-quote:to-list $ :code target
               div
@@ -331,7 +330,7 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ match op
-              (:states _ _) (do &unit)
+              (:states _ _) &unit
               _ $ js/console.log |Dispatch: op
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
@@ -375,22 +374,22 @@
             browser/add-event-listener! |visibilitychange $ fn (event)
               match (browser/visibility-state)
                 (:visible) (fetch-error-file!)
-                _ $ do &unit
+                _ &unit
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target (js/document.querySelector |.app)
+          :code $ quote $ def mount-target
+            option:unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'js-ffi.browser/DomElementHost
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            do
-              js/localStorage.setItem (:storage-key config/site)
-                format-cirru-edn $ :store @*reel
-              , &unit
+            js/localStorage.setItem (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -415,23 +414,17 @@
             :features $ #{} :js-ffi
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
-            do
-              js/setTimeout
-                fn () (cb)
-                  repeat! (* 1000 duration) cb
-                * 1000 duration
-              , &unit
+            js/setTimeout
+              fn () (cb)
+                repeat! (* 1000 duration) cb
+              * 1000 duration
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number $ :: 'Fn
               {} (:return 'Unit)
                 :args $ []
             :features $ #{} :js-ffi
-        'snippets $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn snippets () (println config/cdn?)
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -473,8 +466,7 @@
           :schema $ :: 'StructDef
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            %{} Store (:error-data %none) (:show-core? true) (:cirru? false)
-              :states $ {} $ :cursor ([])
+            Store :error-data %none :show-core? true :cirru? false :states $ {} $ :cursor ([])
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -487,11 +479,9 @@
               (:states cursor s)
                 assoc store :states $ update-states (:states store) cursor s
               (:set-error e)
-                %{} app.schema/Store
-                  :error-data $ %some $ decode-map-as e app.schema/ErrorData
-                  :show-core? $ :show-core? store
-                  :cirru? $ :cirru? store
-                  :states $ :states store
+                app.schema/Store :error-data
+                  %some $ decode-map-as e app.schema/ErrorData
+                  , :show-core? (:show-core? store) :cirru? (:cirru? store) :states $ :states store
               (:toggle-core) (update store :show-core? not)
               (:toggle-cirru) (update store :cirru? not)
               (:hydrate-storage d) (decode-map-as d app.schema/Store)

@@ -387,8 +387,9 @@
           :schema $ :: 'js-ffi.browser/DomElementHost
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ :store @*reel
+            js/localStorage.setItem
+              option:unwrap $ get config/site :storage-key
+              format-cirru-edn $ option:unwrap $ get @*reel :store
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -466,7 +467,7 @@
           :schema $ :: 'StructDef
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            Store :error-data %none :show-core? true :cirru? false :states $ {} $ :cursor ([])
+            Store :error-data (Option :none) :show-core? true :cirru? false :states $ {} $ :cursor ([])
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -480,7 +481,7 @@
                 assoc store :states $ update-states (:states store) cursor s
               (:set-error e)
                 app.schema/Store :error-data
-                  %some $ decode-map-as e app.schema/ErrorData
+                  Option :some $ decode-map-as e app.schema/ErrorData
                   , :show-core? (:show-core? store) :cirru? (:cirru? store) :states $ :states store
               (:toggle-core) (update store :show-core? not)
               (:toggle-cirru) (update store :cirru? not)

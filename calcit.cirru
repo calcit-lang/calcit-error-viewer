@@ -3,9 +3,9 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
+      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
@@ -91,7 +91,7 @@
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
                     .show error-plugin d! $ fn (text)
-                      d! :set-error $ parse-cirru-edn text
+                      d! $ :: :set-error $ parse-cirru-edn text
                 =< 8 nil
                 span $ {} (:inner-text |calcit.core)
                   :style $ if show-core?
@@ -99,7 +99,8 @@
                       :color $ hsl 200 90 80
                     {} (:font-size 12) (:cursor :pointer) (:user-select :none)
                       :color $ hsl 0 0 40
-                  :on-click $ fn (e d!) (d! :toggle-core nil)
+                  :on-click $ fn (e d!)
+                    d! $ :: :toggle-core
                 .render error-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
@@ -152,7 +153,7 @@
                           comp-entry (:def info)
                             :kind $ assert-type info app.schema/ErrorFrame
                             , selected? $ fn (d!)
-                              d! cursor $ assoc state :pointer idx
+                              d! $ :: :states cursor $ assoc state :pointer idx
                 if (option:some? target-option)
                   div
                     {}
@@ -168,7 +169,8 @@
                             :color $ hsl 200 90 80
                           {} (:cursor :pointer) (:user-select :none)
                             :color $ hsl 0 0 40
-                        :on-click $ fn (e d!) (d! :toggle-cirru nil)
+                        :on-click $ fn (e d!)
+                          d! $ :: :toggle-cirru
                     div
                       {} $ :class-name css-args-area
                       if
@@ -272,7 +274,6 @@
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
             respo.comp.inspect :refer $ comp-inspect
-            respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.util.format :refer $ hsl
             memof.once :refer $ memof1-call
@@ -478,7 +479,7 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
-                assoc store :states $ update-states (:states store) cursor s
+                assoc store :states $ update-state-tree (:states store) cursor s
               (:set-error e)
                 app.schema/Store :error-data
                   Option :some $ decode-map-as e app.schema/ErrorData
@@ -493,5 +494,5 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
-            [] respo.cursor :refer $ [] update-states
+            respo.cursor :refer $ update-state-tree
             app.schema :as schema

@@ -8,5 +8,10 @@
     "vite": "8.3.1"
   },
   "version": "0.0.3",
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "scripts": {
+    "compile": "calcit calcit.cirru js",
+    "build": "yarn compile && vite build --base=${VITE_BASE_URL:-./}",
+    "dev": "yarn compile && vite"
+  }
 }

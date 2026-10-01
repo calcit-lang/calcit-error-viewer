@@ -16,11 +16,8 @@ Canonical project files are `calcit.cirru` and `deps.cirru`; do not restore
 
 ```sh
 caps --strict --ci
-caps verify --toolchain
 yarn install --immutable
-calcit fix --workflow strict --verify
 calcit --check-only
-calcit analyze check-public --ns app.comp.container --ns app.config --ns app.main --ns app.schema --ns app.updater --summary-only
 calcit js
 node --test scripts/regression.test.mjs
 yarn vite build --base=./

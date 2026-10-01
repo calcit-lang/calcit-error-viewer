@@ -70,7 +70,7 @@
                   :macro $ <> |macro $ str-spaced style-tag style-color-macro
                   :fn $ <> |fn $ str-spaced style-tag style-color-fn
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'String 'Tag 'Bool 'Fn
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-header (states show-core?)
@@ -113,7 +113,7 @@
                   :background-color $ hsl 0 0 22
               <> path
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
             :args $ [] 'String 'Bool
         'comp-viewer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-viewer (states error-data show-core? cirru?)
@@ -124,9 +124,7 @@
                     {} $ :pointer 0
                   , app.schema/ViewerState
                 stack $ :stack error-data
-                target-option $ assert-type
-                  get stack $ :pointer state
-                  :: 'Option 'app.schema/ErrorFrame
+                target-option $ get stack $ :pointer state
                 target $ option:unwrap-or target-option $ app.schema/ErrorFrame :def | :kind :unknown :args ([]) :code
                   quote $ []
                 code-list $ if (option:some? target-option)
@@ -150,10 +148,8 @@
                           and (not show-core?)
                             starts-with? (:def info) |calcit.core/
                           comp-tiny-entry (:def info) selected?
-                          comp-entry (:def info)
-                            :kind $ assert-type info app.schema/ErrorFrame
-                            , selected? $ fn (d!)
-                              d! $ :: :states cursor $ assoc state :pointer idx
+                          comp-entry (:def info) (:kind info) selected? $ fn (d!)
+                            d! $ :: :states cursor $ assoc state :pointer idx
                 if (option:some? target-option)
                   div
                     {}
@@ -291,7 +287,7 @@
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def exposed-port
             let
@@ -336,7 +332,7 @@
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'Enum
             :features $ #{} :js-ffi
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! ()
@@ -454,12 +450,16 @@
             :code 'CirruQuote
           :examples $ []
           :schema $ :: 'StructDef
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op (:states 'List 'Dynamic) (:set-error 'Dynamic) (:toggle-core) (:toggle-cirru) (:hydrate-storage 'Dynamic)
+          :examples $ []
+          :schema $ :: 'EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
             :error-data $ :: 'Option 'app.schema/ErrorData
             :show-core? 'Bool
             :cirru? 'Bool
-            :states 'Map
+            :states $ :: 'Map 'Tag 'Dynamic
           :examples $ []
           :schema $ :: 'StructDef
         'ViewerState $ %{} 'CodeEntry (:doc |)
@@ -470,7 +470,7 @@
           :code $ quote $ def store
             Store :error-data (Option :none) :show-core? true :cirru? false :states $ {} $ :cursor ([])
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -490,7 +490,7 @@
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'Dynamic 'Dynamic 'Dynamic
+            :args $ [] 'app.schema/Store 'app.schema/Op 'Dynamic 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require

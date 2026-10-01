@@ -11,9 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: frontend-${{ github.repository }}-${{ github.event_name == 'pull_request' && 'pr' || github.ref }}
+  group: frontend-${{ github.repository }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
   cancel-in-progress: false
-  queue: max
 
 jobs:
   test:
@@ -59,10 +58,11 @@ jobs:
       id: asset-path
       env:
         CDN_ORIGIN: https://cos-sh.tiye.me
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         set -euo pipefail
         if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-          asset_prefix="${GITHUB_REPOSITORY}/pr/"
+          asset_prefix="${GITHUB_REPOSITORY}/pr/${PR_NUMBER}/"
         else
           asset_prefix="${GITHUB_REPOSITORY}/"
         fi
@@ -72,7 +72,7 @@ jobs:
         echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
         calcit calcit.cirru js
         yarn vite build --base="$VITE_BASE_URL"
-        node --test scripts/regression.test.mjs
+        node --test scripts/regression.test.mjs scripts/cdn-build.test.mjs
 
     - name: Upload static assets to COS
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository

@@ -13,6 +13,7 @@ permissions:
 concurrency:
   group: frontend-${{ github.repository }}-${{ github.event_name == 'pull_request' && 'pr' || github.ref }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   test:

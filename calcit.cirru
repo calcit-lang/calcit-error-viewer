@@ -3,9 +3,9 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
+      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
@@ -70,7 +70,7 @@
                   :macro $ <> |macro $ str-spaced style-tag style-color-macro
                   :fn $ <> |fn $ str-spaced style-tag style-color-fn
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'String 'Tag 'Bool 'Fn
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-header (states show-core?)
@@ -91,7 +91,7 @@
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
                     .show error-plugin d! $ fn (text)
-                      d! :set-error $ parse-cirru-edn text
+                      d! $ :: :set-error $ parse-cirru-edn text
                 =< 8 nil
                 span $ {} (:inner-text |calcit.core)
                   :style $ if show-core?
@@ -99,7 +99,8 @@
                       :color $ hsl 200 90 80
                     {} (:font-size 12) (:cursor :pointer) (:user-select :none)
                       :color $ hsl 0 0 40
-                  :on-click $ fn (e d!) (d! :toggle-core nil)
+                  :on-click $ fn (e d!)
+                    d! $ :: :toggle-core
                 .render error-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
@@ -112,7 +113,7 @@
                   :background-color $ hsl 0 0 22
               <> path
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
             :args $ [] 'String 'Bool
         'comp-viewer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-viewer (states error-data show-core? cirru?)
@@ -123,9 +124,7 @@
                     {} $ :pointer 0
                   , app.schema/ViewerState
                 stack $ :stack error-data
-                target-option $ assert-type
-                  get stack $ :pointer state
-                  :: 'Option 'app.schema/ErrorFrame
+                target-option $ get stack $ :pointer state
                 target $ option:unwrap-or target-option $ app.schema/ErrorFrame :def | :kind :unknown :args ([]) :code
                   quote $ []
                 code-list $ if (option:some? target-option)
@@ -149,10 +148,8 @@
                           and (not show-core?)
                             starts-with? (:def info) |calcit.core/
                           comp-tiny-entry (:def info) selected?
-                          comp-entry (:def info)
-                            :kind $ assert-type info app.schema/ErrorFrame
-                            , selected? $ fn (d!)
-                              d! cursor $ assoc state :pointer idx
+                          comp-entry (:def info) (:kind info) selected? $ fn (d!)
+                            d! $ :: :states cursor $ assoc state :pointer idx
                 if (option:some? target-option)
                   div
                     {}
@@ -168,7 +165,8 @@
                             :color $ hsl 200 90 80
                           {} (:cursor :pointer) (:user-select :none)
                             :color $ hsl 0 0 40
-                        :on-click $ fn (e d!) (d! :toggle-cirru nil)
+                        :on-click $ fn (e d!)
+                          d! $ :: :toggle-cirru
                     div
                       {} $ :class-name css-args-area
                       if
@@ -272,7 +270,6 @@
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
             respo.comp.inspect :refer $ comp-inspect
-            respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.util.format :refer $ hsl
             memof.once :refer $ memof1-call
@@ -290,7 +287,7 @@
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def exposed-port
             let
@@ -335,7 +332,7 @@
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'Enum
             :features $ #{} :js-ffi
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! ()
@@ -453,12 +450,16 @@
             :code 'CirruQuote
           :examples $ []
           :schema $ :: 'StructDef
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op (:states 'List 'Dynamic) (:set-error 'Dynamic) (:toggle-core) (:toggle-cirru) (:hydrate-storage 'Dynamic)
+          :examples $ []
+          :schema $ :: 'EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
             :error-data $ :: 'Option 'app.schema/ErrorData
             :show-core? 'Bool
             :cirru? 'Bool
-            :states 'Map
+            :states $ :: 'Map 'Tag 'Dynamic
           :examples $ []
           :schema $ :: 'StructDef
         'ViewerState $ %{} 'CodeEntry (:doc |)
@@ -469,7 +470,7 @@
           :code $ quote $ def store
             Store :error-data (Option :none) :show-core? true :cirru? false :states $ {} $ :cursor ([])
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -478,7 +479,7 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
-                assoc store :states $ update-states (:states store) cursor s
+                assoc store :states $ update-state-tree (:states store) cursor s
               (:set-error e)
                 app.schema/Store :error-data
                   Option :some $ decode-map-as e app.schema/ErrorData
@@ -489,9 +490,9 @@
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'Dynamic 'Dynamic 'Dynamic
+            :args $ [] 'app.schema/Store 'app.schema/Op 'Dynamic 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
-            [] respo.cursor :refer $ [] update-states
+            respo.cursor :refer $ update-state-tree
             app.schema :as schema

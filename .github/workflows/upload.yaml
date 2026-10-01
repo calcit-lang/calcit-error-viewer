@@ -10,9 +10,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: frontend-${{ github.repository }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
@@ -33,28 +37,24 @@ jobs:
         tools: calcit,caps
         caps-version: "0.1.1"
 
-    # Current Respo modules still request preceding compatible releases, so
-    # strict Caps resolution rejects the highest SemVer set selected here.
     - name: Validate Calcit project
       run: |
-        caps --ci
+        set -euo pipefail
+        caps --strict --ci
         yarn install --immutable
-        caps verify --toolchain
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
-        calcit calcit.cirru fix --workflow strict --verify --format edn
         calcit calcit.cirru --check-only
-        calcit calcit.cirru analyze dynamic-methods --summary-only --format json | jq -e '.data.summary.findings == 0'
-        calcit calcit.cirru analyze deprecated --summary-only --format json
-        calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
 
     - name: Build client with CDN asset URLs
       id: asset-path
       env:
         CDN_ORIGIN: https://cos-sh.tiye.me
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
+        set -euo pipefail
         if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-          asset_prefix="${GITHUB_REPOSITORY}/pr/"
+          asset_prefix="${GITHUB_REPOSITORY}/pr/${PR_NUMBER}/"
         else
           asset_prefix="${GITHUB_REPOSITORY}/"
         fi
@@ -64,6 +64,7 @@ jobs:
         echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
         calcit calcit.cirru js
         yarn vite build --base="$VITE_BASE_URL"
+        node --test scripts/regression.test.mjs scripts/cdn-build.test.mjs
 
     - name: Upload static assets to COS
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository

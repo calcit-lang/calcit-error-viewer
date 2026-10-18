@@ -20,6 +20,7 @@ caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
 calcit --check-only --all-defs
+calcit fix --workflow strict --verify
 yarn build
 node --test scripts/regression.test.mjs
 yarn dev
@@ -38,7 +39,7 @@ v1.2.0 同时检查生成 HTML 的同域脚本及样式引用是否位于公开�
 
 ### 0.30.1 迁移候选
 
-Theme 依赖使用已正式发布的 [0.4.9](https://github.com/Cirru/calcit-theme.calcit/releases/tag/0.4.9)，本地验收已替换为该 tag 的独立检出，不再引用上游候选工作树。所有模块使用正式 tag，不使用 hash 或模块 alpha；Calcit/procs 的 alpha 版本是上述明确标注的工具链预发布版。完整远端依赖解析仍由 PR CI 中的 `caps --strict --ci` 验证。
+Theme 依赖使用已正式发布的 [0.4.10](https://github.com/Cirru/calcit-theme.calcit/releases/tag/0.4.10)，本地验收使用该 tag 的独立检出，不引用上游候选工作树。所有模块使用正式 tag，不使用 hash 或模块 alpha；Calcit/procs 的 alpha 版本是上述明确标注的工具链预发布版。完整远端依赖解析仍由 PR CI 中的 `caps --strict --ci` 验证。
 
 错误文件格式、`http://localhost:<exposed-port>/load-error`、原 `workflow` 存储 key 和生产部署目的地保持不变；没有启用原来注释掉的存储恢复。原计时器递归错误导致后续间隔不断乘 1000，现修正为持续每 60 秒保存，使用者应注意保存会按原设定频率实际发生。HTTP 状态、网络及读取失败记录为明确错误，不把失败载荷送入错误数据解码器。
 
@@ -54,7 +55,9 @@ Reel 中已经存在的 Store 使用 `struct-match` 读取，ViewerState 区分�
 
 原先三个完整 strict workflow 的应用 proof 义务已消除，额外暴露的 `struct-match` 宏问题采用真实外层 `struct?` 守卫，跟踪核心 [#2148](https://github.com/calcit-lang/calcit/issues/2148)。后续补上 Respo 游标返回值到原 Map 合同的受检边界、动态 render 回调的 Enum 守卫、reload 的实际 Map 解码及 Unit 返回；visibility 回调仍发起原异步读取，但显式返回 Unit，不改变为等待请求完成。
 
-配合 [Theme #26](https://github.com/Cirru/calcit-theme.calcit/pull/26) 的未发布 0.4.10 候选源码，完整 workflow 与原三项 JS 回归已通过；测试后已恢复正式模块图。当前声明的正式 Theme 仍是 0.4.9，完整 workflow **仍受该发布版阻塞**：新建空 Option Ref 被推断为 `Ref<Option<Never>>`，与 hover 存储合同不匹配，跟踪 [Theme #25](https://github.com/Cirru/calcit-theme.calcit/issues/25)。不以候选源码、普通 all-defs/public 或绿色 CI 冒称已完成正式依赖的完整 workflow 验收，也不通过 unsafe、依赖缓存修改或预算放宽绕过。
+Theme 0.4.9 的空 Option Ref 合同问题已由 [Theme #26](https://github.com/Cirru/calcit-theme.calcit/pull/26) 修复并正式发布为 0.4.10，见 [Theme #25](https://github.com/Cirru/calcit-theme.calcit/issues/25)。本项目改用该正式 tag 并在 CI 启用完整 strict workflow 门禁；不通过候选源码、unsafe 或预算放宽绕过检查。此次依赖更新不合并或部署本应用。
+
+正式 0.4.10 独立检出后，本地完整 workflow、270/270 全定义、34/34 public、原质量基线、Node 24 下三项原 JS 回归、immutable Yarn 及 CDN 构建均通过；远端依赖解析及上传验收仍以本次 PR CI 为准。
 
 ### Workflow
 

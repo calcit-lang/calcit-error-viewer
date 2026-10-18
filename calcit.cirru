@@ -32,8 +32,12 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ struct-match (reel-schema/read-field reel :store) (app.schema/Store checked checked)
-                  _ _ $ raise "|Expected app.schema/Store"
+                store $ let
+                    raw-store $ reel-schema/read-field reel :store
+                  if (struct? raw-store)
+                    struct-match raw-store (app.schema/Store checked checked)
+                      _ _ $ raise "|Expected app.schema/Store"
+                    raise "|Expected app.schema/Store"
                 states $ :states store
               div
                 {}
@@ -62,7 +66,14 @@
                   :class-name $ str-spaced css/row-parted style-entry
                   :style $ if selected? $ {}
                     :background-color $ hsl 0 0 22
-                  :on-click $ fn (e d!) (on-select d!)
+                  :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] (:: 'Map 'Tag 'Dynamic)
+                        :: 'Fn $ {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    on-select d!
                 div
                   {} $ :style $ merge
                     {} (:display :inline-block) (:vertical-align :top)
@@ -92,7 +103,9 @@
                   {} (:title "|Error text") (:multiline? true) (:placeholder "|content from .calcit-error.cirru")
                     :input-style $ {} (:font-family ui/font-code) (:white-space :nowrap) (:min-height 320)
                     :card-style $ {} $ :max-width |1000px
-                    :validator $ fn (text) (println |got: text)
+                    :validator $ fn (text)
+                      hint-fn $ {} $ :args ([] 'String)
+                      println |got: text
                       try
                         do (parse-cirru-list text) nil
                         fn (e) (str e)
@@ -103,8 +116,18 @@
                 =< 8 nil
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] (:: 'Map 'Tag 'Dynamic)
+                        :: 'Fn $ {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     .show error-plugin d! $ fn (text)
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return 'Unit
                       d! $ :: :set-error $ parse-cirru-edn text
+                    , &unit
                 =< 8 nil
                 span $ {} (:inner-text |calcit.core)
                   :style $ if show-core?
@@ -113,6 +136,12 @@
                     {} (:font-size 12) (:cursor :pointer) (:user-select :none)
                       :color $ hsl 0 0 40
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] (:: 'Map 'Tag 'Dynamic)
+                        :: 'Fn $ {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :toggle-core
                 .render error-plugin
           :examples $ []
@@ -335,7 +364,20 @@
             when config/dev? $ match op
               (:states _ _) &unit
               _ $ js/console.log |Dispatch: op
-            reset! *reel $ reel-updater updater @*reel op
+            reset! *reel $ reel-updater
+              fn (raw-store raw-op raw-id raw-time)
+                hint-fn $ {}
+                  :args $ [] 'Dynamic 'Dynamic 'Dynamic 'Dynamic
+                  :return 'app.schema/Store
+                updater
+                  if (struct? raw-store)
+                    struct-match raw-store (app.schema/Store checked checked)
+                      _ _ $ raise "|Expected app.schema/Store"
+                    decode-map-as raw-store app.schema/Store
+                  if (enum? raw-op) raw-op $ raise "|Expected Enum operation"
+                  decode-map-as raw-id 'String
+                  decode-map-as raw-time 'Number
+              , @*reel op
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -497,7 +539,11 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
-                assoc store :states $ update-state-tree (:states store) cursor s
+                assoc store :states $ decode-map-as
+                  update-state-tree (:states store)
+                    decode-map-as cursor $ :: 'List 'Dynamic
+                    , s
+                  :: 'Map 'Tag 'Dynamic
               (:set-error e)
                 app.schema/Store :error-data
                   Option :some $ decode-map-as e app.schema/ErrorData
@@ -508,7 +554,7 @@
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
+            :args $ [] 'app.schema/Store 'Enum 'String 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require

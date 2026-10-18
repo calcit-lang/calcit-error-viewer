@@ -46,6 +46,14 @@ Reel 中已经存在的 Store 使用 `struct-match` 读取，ViewerState 区分�
 
 本地通过全部 270 个定义 strict、34 个公开定义检查、三项原 JS 回归及 CDN 构建；合成组件浏览器验收覆盖栈切换、高亮、核心折叠、文本载入和状态保留。不代表完整应用启动/自动拉取/真实存储端到端验收，也不代表远端 CI 或生产部署已完成。
 
+### 后续类型边界清理
+
+使用者影响：仍接受原 UI 的匿名 Enum 操作，不强制转换成名义 `Op`，未知操作保留原警告/返回原 Store 的分支；错误文件和存储格式不变。状态 cursor 必须为 List，更新后的根状态必须符合原 `Store.states` 的 Tag-keyed Map 合同；不合法数据现在会在写入 Reel Ref 前失败。子树仍可使用 String 等原有 cursor key，不改成仅 Tag 的路径。
+
+事件回调明确使用应用真实的 `Enum -> Unit` dispatch 合同，Prompt 文本参数为 String；show 的返回值不再冒充事件回调的 Unit。旧 Reel 动态 updater 接口在调用处验证 Store/Enum/id/time；已经是 nominal Store 的值保留身份，不重复按 Map 解码。这里保留原 Reel Map、调试控制与热更新路径，不冒称已迁移成 `reel.typed/State`。
+
+原先三个完整 strict workflow 的应用 proof 义务已消除，额外暴露的 `struct-match` 宏问题采用真实外层 `struct?` 守卫，跟踪核心 [#2148](https://github.com/calcit-lang/calcit/issues/2148)。完整 workflow **仍未通过**：正式 Theme 0.4.9 的新建空 Option Ref 被推断为 `Ref<Option<Never>>`，与 hover 存储合同不匹配，已报告 [Theme #25](https://github.com/Cirru/calcit-theme.calcit/issues/25)。不以普通 all-defs/public 通过冒称完整 workflow 已通过，也不通过 unsafe、依赖缓存修改或预算放宽绕过。
+
 ### Workflow
 
 https://github.com/calcit-lang/respo-calcit-workflow

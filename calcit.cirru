@@ -5,19 +5,26 @@
   :entries $ {} $ :default
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/
+      :modules $ [] |respo.calcit/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/ |js-ffi/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
+        'ClickTarget $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait ClickTarget
+            .click! $ :: 'Fn $ {}
+              :args $ [] 'app.comp.container/ClickTarget
+              :return 'Unit
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
+            :names $ {} $ :click! |click
+          :schema $ :: 'Trait
         'click-load! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn click-load! ()
             if-let
               target $ browser/query-selector |#load
-              unsafe-coerce
-                .!click $ unsafe-coerce target js-ffi.browser/DomElementHost
-                , 'Unit
-              unsafe-coerce nil 'Unit
+              .click! $ js-cast target 'app.comp.container/ClickTarget
+              , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -25,21 +32,23 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ decode-map-as (reel-schema/read-field reel :store) app.schema/Store
+                store $ struct-match (reel-schema/read-field reel :store) (app.schema/Store checked checked)
+                  _ _ $ raise "|Expected app.schema/Store"
                 states $ :states store
               div
                 {}
                   :class-name $ str-spaced css/global css/fullscreen css/column
                   :style $ {} $ :color (hsl 0 0 80)
-                if-let
-                  error-data $ :error-data store
-                  comp-viewer (>> states :viewer) error-data (:show-core? store) (:cirru? store)
-                  div
-                    {}
-                      :class-name $ str-spaced css/expand css/center css-main
-                      :on-click $ fn (e d!) (click-load!)
-                    memof1-call comp-header (>> states :header) (:show-core? store)
-                    <> "|Click to load error info in Cirru Edn"
+                match (:error-data store)
+                  (:some error-data)
+                    comp-viewer (>> states :viewer) error-data (:show-core? store) (:cirru? store)
+                  (:none)
+                    div
+                      {}
+                        :class-name $ str-spaced css/expand css/center css-main
+                        :on-click $ fn (e d!) (click-load!)
+                      memof1-call comp-header (>> states :header) (:show-core? store)
+                      <> "|Click to load error info in Cirru Edn"
                 when dev? $ comp-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |Store store $ {} (:bottom 4)
           :examples $ []
@@ -64,14 +73,18 @@
                   div
                     {} $ :style $ {} (:font-size 10) (:line-height |14px)
                     <> $ or ns |-
-                case-default kind
-                  <> $ str kind
+                match kind
                   :syntax $ <> |syntax $ str-spaced style-tag style-color-syntax
                   :macro $ <> |macro $ str-spaced style-tag style-color-macro
                   :fn $ <> |fn $ str-spaced style-tag style-color-fn
+                  _ $ <> $ str kind
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String 'Tag 'Bool 'Fn
+            :args $ [] 'String 'Tag 'Bool $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] $ :: 'Fn
+                  {} (:return 'Unit)
+                    :args $ [] 'Enum
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-header (states show-core?)
             let
@@ -119,16 +132,15 @@
           :code $ quote $ defcomp comp-viewer (states error-data show-core? cirru?)
             let
                 cursor $ option:unwrap-or (get states :cursor) ([])
-                state $ decode-map-as
-                  option:unwrap-or (get states :data)
-                    {} $ :pointer 0
-                  , app.schema/ViewerState
+                state $ let
+                    raw-state $ option:unwrap-or (get states :data)
+                      {} $ :pointer 0
+                  if (struct? raw-state)
+                    struct-match raw-state (app.schema/ViewerState checked checked)
+                      _ _ $ raise "|Expected app.schema/ViewerState"
+                    decode-map-as raw-state app.schema/ViewerState
                 stack $ :stack error-data
                 target-option $ get stack $ :pointer state
-                target $ option:unwrap-or target-option $ app.schema/ErrorFrame :def | :kind :unknown :args ([]) :code
-                  quote $ []
-                code-list $ if (option:some? target-option)
-                  &cirru-quote:to-list $ :code target
               div
                 {} $ :class-name $ str-spaced css/expand css/row
                 div
@@ -150,66 +162,68 @@
                           comp-tiny-entry (:def info) selected?
                           comp-entry (:def info) (:kind info) selected? $ fn (d!)
                             d! $ :: :states cursor $ assoc state :pointer idx
-                if (option:some? target-option)
-                  div
-                    {}
-                      :class-name $ str-spaced css/expand css/column
-                      :style $ {} $ :padding "|0 8px"
-                    div
-                      {} (:class-name css/row-parted)
-                        :style $ {} (:color :red) (:font-size 16)
-                      <> $ :message error-data
-                      span $ {} (:inner-text |Cirru)
-                        :style $ if cirru?
-                          {} (:cursor :pointer) (:user-select :none)
-                            :color $ hsl 200 90 80
-                          {} (:cursor :pointer) (:user-select :none)
-                            :color $ hsl 0 0 40
-                        :on-click $ fn (e d!)
-                          d! $ :: :toggle-cirru
-                    div
-                      {} $ :class-name css-args-area
-                      if
-                        empty? $ :args target
-                        div ({})
-                          <> "|No args" $ {} (:font-family ui/font-fancy) (:padding "|0 9px")
-                        list-> ({})
-                          -> (:args target)
-                            map-indexed $ fn (idx arg)
-                              [] idx $ div
-                                {} $ :class-name css/row-middle
-                                <> (str idx)
-                                  {} (:margin "|0 6px") (:font-size 12)
-                                    :color $ hsl 0 0 80 0.5
-                                    :font-family ui/font-code
-                                =< 4 nil
-                                if
-                                  or
-                                    &= :syntax $ :kind target
-                                    &= :macro $ :kind target
-                                  <> $ format-to-lisp arg
-                                  <> $ str arg
-                    =< nil 8
+                if-let (target target-option)
+                  let
+                      code-list $ &cirru-quote:to-list $ :code target
                     div
                       {}
-                        :class-name $ str-spaced css/expand css/column css/font-code
-                        :style $ {} (:white-space :pre) (:line-height |21px)
-                          :border $ str "|1px solid " $ hsl 0 0 60 0.2
-                          :padding "|8px 8px"
-                      if (list? code-list)
-                        if cirru?
-                          div
-                            {} (:class-name css/expand)
-                              :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
-                            render-expr code-list
-                          pre $ {}
-                            :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
-                            :innerHTML $ generateHtml $ trim
-                              format-cirru $ [] code-list
-                        <> $ str code-list
+                        :class-name $ str-spaced css/expand css/column
+                        :style $ {} $ :padding "|0 8px"
+                      div
+                        {} (:class-name css/row-parted)
+                          :style $ {} (:color :red) (:font-size 16)
+                        <> $ :message error-data
+                        span $ {} (:inner-text |Cirru)
+                          :style $ if cirru?
+                            {} (:cursor :pointer) (:user-select :none)
+                              :color $ hsl 200 90 80
+                            {} (:cursor :pointer) (:user-select :none)
+                              :color $ hsl 0 0 40
+                          :on-click $ fn (e d!)
+                            d! $ :: :toggle-cirru
+                      div
+                        {} $ :class-name css-args-area
+                        if
+                          empty? $ :args target
+                          div ({})
+                            <> "|No args" $ {} (:font-family ui/font-fancy) (:padding "|0 9px")
+                          list-> ({})
+                            -> (:args target)
+                              map-indexed $ fn (idx arg)
+                                [] idx $ div
+                                  {} $ :class-name css/row-middle
+                                  <> (str idx)
+                                    {} (:margin "|0 6px") (:font-size 12)
+                                      :color $ hsl 0 0 80 0.5
+                                      :font-family ui/font-code
+                                  =< 4 nil
+                                  if
+                                    or
+                                      &= :syntax $ :kind target
+                                      &= :macro $ :kind target
+                                    <> $ format-to-lisp arg
+                                    <> $ str arg
+                      =< nil 8
+                      div
+                        {}
+                          :class-name $ str-spaced css/expand css/column css/font-code
+                          :style $ {} (:white-space :pre) (:line-height |21px)
+                            :border $ str "|1px solid " $ hsl 0 0 60 0.2
+                            :padding "|8px 8px"
+                        if (list? code-list)
+                          if cirru?
+                            div
+                              {} (:class-name css/expand)
+                                :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
+                              render-expr code-list
+                            pre $ {}
+                              :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
+                              :innerHTML $ generateHtml $ trim
+                                format-cirru $ [] code-list
+                          <> $ str code-list
                   div ({}) (=< |nothing nil)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/ErrorData 'Bool 'Bool
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
@@ -217,32 +231,32 @@
               {} (:white-space :pre) (:font-family ui/font-code) (:line-height |21px) (:max-height |40vh) (:overflow :auto)
                 :border $ str "|1px solid " $ hsl 0 0 60 0.3
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-main $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-main
             {} $ |& $ {} (:font-family ui/font-fancy) (:font-size 24) (:font-weight 300)
               :color $ hsl 0 0 70
               :cursor :pointer
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-color-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-fn
             {} $ |& $ {}
               :background-color $ hsl 20 90 30
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-color-macro $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-macro
             {} $ |& $ {}
               :background-color $ hsl 20 80 38
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-color-syntax $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-syntax
             {} $ |& $ {}
               :background-color $ hsl 200 80 30
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-entry
             {} $ |& $ {} (:padding "|0 8px")
@@ -250,19 +264,19 @@
               :cursor :pointer
               :min-height |48px
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-tag $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-tag
             {} $ |& $ {} (:color :white) (:margin-left 8) (:padding "|0 4px") (:font-size 12) (:line-height |18px) (:display :inline-block) (:border-radius |4px)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-tiny-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-tiny-entry
             {} $ |& $ {} (:padding "|0 8px")
               :border-bottom $ str "|1px solid " $ hsl 0 0 50 0.3
               :opacity 0.5
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
@@ -294,7 +308,7 @@
                 raw $ option:unwrap-or (get-env |exposed-port) |6011
                 parsed $ result:unwrap-or (parse-float raw) 6011
               if
-                and (round? parsed) (>= parsed 1) (<= parsed 65535)
+                and (integer? parsed) (>= parsed 1) (<= parsed 65535)
                 , parsed 6011
           :examples $ []
           :schema $ :: 'Number
@@ -302,34 +316,23 @@
           :code $ quote $ def site
             {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/calcit-workflow/) (:title |Calcit) (:icon |http://cdn.tiye.me/logo/mvc-works.png) (:storage-key |workflow)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel
+          :code $ quote $ defref *reel
             -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
-          :schema $ :: 'Dynamic
-        'click-load! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn click-load! ()
-            if-let
-              target $ browser/query-selector |#load
-              unsafe-coerce
-                .!click $ unsafe-coerce target js-ffi.browser/DomElementHost
-                , 'Unit
-              unsafe-coerce nil 'Unit
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ match op
               (:states _ _) &unit
               _ $ js/console.log |Dispatch: op
             reset! *reel $ reel-updater updater @*reel op
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Enum
@@ -337,12 +340,18 @@
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! ()
             hint-fn $ {} $ :async true
-            let
-                response $ js-await $ js/fetch (str |http://localhost: config/exposed-port |/load-error)
-              if (.-ok response)
-                dispatch! $ :: :set-error $ parse-cirru-edn
-                  js-await $ .!text response
-                js/console.error "|Failed to load" response
+            match
+              js-await $ js-ffi.shared/fetch-response $ str |http://localhost: config/exposed-port |/load-error
+              (:ok response)
+                if (response :ok?)
+                  match
+                    js-await $ js-ffi.shared/response-text response
+                    (:ok text)
+                      dispatch! $ :: :set-error $ parse-cirru-edn text
+                    (:err error) (js/console.error "|Failed to load" error)
+                  js/console.error "|Failed to load" response
+              (:err error) (js/console.error "|Failed to load" error)
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -352,16 +361,17 @@
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
             render-app!
-            add-watch *reel :changes $ fn (reel prev) (render-app!)
+            add-watch! *reel :changes $ fn (_reel _prev) (render-app!) &unit
             listen-devtools! |a dispatch!
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             browser/add-event-listener! |keydown $ fn (event)
-              if
-                and
-                  unsafe-coerce (.-metaKey event) 'Bool
-                  = |e $ unsafe-coerce (.-key event) 'String
-                click-load!
-                unsafe-coerce nil 'Unit
+              let
+                  keyboard $ browser/keyboard-event-host event
+                if
+                  and (keyboard :meta-key?)
+                    = |e $ browser/keyboard-event-key keyboard
+                  app.comp.container/click-load!
+                  , &unit
             fetch-error-file!
             repeat! 60 persist-storage!
             ; let
@@ -379,12 +389,12 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ browser/query-selector |.app
+            option:unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'js-ffi.browser/DomElementHost
+          :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            js/localStorage.setItem
+            browser/storage-set!
               option:unwrap $ get config/site :storage-key
               format-cirru-edn $ option:unwrap $ get @*reel :store
             , &unit
@@ -395,8 +405,8 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (remove-watch *reel :changes) (clear-cache!)
-                add-watch *reel :changes $ fn (reel prev) (render-app!)
+              do (remove-watch! *reel :changes) (clear-cache!)
+                add-watch! *reel :changes $ fn (_reel _prev) (render-app!) &unit
                 reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -405,16 +415,15 @@
             :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! (js/document.querySelector |.app) (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
-            js/setTimeout
-              fn () (cb)
-                repeat! (* 1000 duration) cb
+            browser/set-timeout!
+              fn () (cb) (repeat! duration cb)
               * 1000 duration
             , &unit
           :examples $ []
@@ -426,14 +435,14 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            [] respo.core :refer $ [] render! clear-cache!
-            [] app.comp.container :refer $ [] comp-container
-            [] app.updater :refer $ [] updater
-            [] app.schema :as schema
-            [] reel.util :refer $ [] listen-devtools!
-            [] reel.core :refer $ [] reel-updater refresh-reel
-            [] reel.schema :as reel-schema
-            [] app.config :as config
+            respo.core :refer $ render! clear-cache!
+            app.comp.container :refer $ comp-container
+            app.updater :refer $ updater
+            app.schema :as schema
+            reel.util :refer $ listen-devtools!
+            reel.core :refer $ reel-updater refresh-reel
+            reel.schema :as reel-schema
+            app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
             js-ffi.browser :as browser
@@ -451,7 +460,12 @@
           :examples $ []
           :schema $ :: 'StructDef
         'Op $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defenum Op (:states 'List 'Dynamic) (:set-error 'Dynamic) (:toggle-core) (:toggle-cirru) (:hydrate-storage 'Dynamic)
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :set-error 'Dynamic
+            :toggle-core
+            :toggle-cirru
+            :hydrate-storage 'Dynamic
           :examples $ []
           :schema $ :: 'EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
@@ -490,7 +504,7 @@
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'app.schema/Op 'Dynamic 'Dynamic
+            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require

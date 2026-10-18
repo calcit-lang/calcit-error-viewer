@@ -35,6 +35,7 @@ jobs:
 
     - uses: calcit-lang/setup-calcit@ca701be5a471759e442aa053cd100720bbe1f09f # v1.5.0
       with:
+        deps-file: deps.cirru
         tools: calcit,caps
         caps-version: "0.1.1"
 
@@ -46,8 +47,8 @@ jobs:
         caps verify --toolchain
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
-        calcit calcit.cirru --check-only
-        calcit calcit.cirru analyze check-public --ns app.comp.container --ns app.config --ns app.main --ns app.schema --ns app.updater --summary-only --format json
+        calcit calcit.cirru --check-only --all-defs
+        calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.main --ns app.schema --ns app.updater --summary-only --format json
 
     - name: Build client with CDN asset URLs
       id: asset-path

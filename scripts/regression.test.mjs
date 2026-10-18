@@ -3,11 +3,12 @@ import test from 'node:test';
 import * as clt from '../js-out/calcit.core.mjs';
 import { store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
-import { comp_header } from '../js-out/app.comp.container.mjs';
-import { component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
+import { comp_container, comp_header, comp_viewer } from '../js-out/app.comp.container.mjs';
+import { reel } from '../js-out/reel.schema.mjs';
+import { child_pair_value, component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
 import { make_string } from '../js-out/respo.render.html.mjs';
 
-const t = clt.init_tags(['states', 'cursor', 'data', 'viewer', 'pointer', 'event', 'click', 'children', 'some', 'toggle-core', 'toggle-cirru', 'show-core?', 'cirru?', 'set-error', 'message', 'stack', 'error-data']);
+const t = clt.init_tags(['states', 'cursor', 'data', 'viewer', 'pointer', 'event', 'click', 'children', 'some', 'toggle-core', 'toggle-cirru', 'show-core?', 'cirru?', 'set-error', 'message', 'stack', 'error-data', 'store']);
 const map = clt._$n__$M_;
 const list = clt._$L_;
 const op = clt._$o__$o_;
@@ -15,6 +16,7 @@ const field = (v, k) => clt.option_$o_unwrap(clt.get(v, k));
 const nth = (v, i) => clt.option_$o_unwrap(clt.nth(v, i));
 
 function coreClick(node) {
+  if (node == null) return;
   if (component_$q_(node)) return coreClick(clt.option_$o_unwrap(component_tree(node)));
   const events = clt.get(node, t.event);
   if (clt._$n_enum_$o_nth(events, 0) === t.some && make_string(node).includes('calcit.core')) {
@@ -25,7 +27,7 @@ function coreClick(node) {
   if (clt._$n_enum_$o_nth(children, 0) === t.some) {
     const pairs = clt.option_$o_unwrap(children);
     for (let i = 0; i < clt.count(pairs); i++) {
-      const result = coreClick(nth(nth(pairs, i), 1));
+      const result = coreClick(child_pair_value(nth(pairs, i)));
       if (result) return result;
     }
   }
@@ -60,4 +62,8 @@ test('loading error data preserves existing viewer state and visibility', () => 
   assert.equal(field(clt.option_$o_unwrap(field(next, t['error-data'])), t.message), 'fixture');
   assert.equal(clt._$e_(field(initial, t.states), field(next, t.states)), true);
   assert.equal(field(next, t['show-core?']), true);
+  assert.match(make_string(comp_container(clt.assoc(reel, t.store, store))), /Error Viewer/);
+  assert.match(make_string(comp_container(clt.assoc(reel, t.store, next))), /Error Viewer/);
+  const error = clt.option_$o_unwrap(field(next, t['error-data']));
+  assert.equal(typeof make_string(comp_viewer(map(t.cursor, list()), error, true, false)), 'string');
 });

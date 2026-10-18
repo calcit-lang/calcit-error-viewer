@@ -45,7 +45,9 @@
                   :style $ {} $ :color (hsl 0 0 80)
                 match (:error-data store)
                   (:some error-data)
-                    comp-viewer (>> states :viewer) error-data (:show-core? store) (:cirru? store)
+                    comp-viewer
+                      decode-map-as (>> states :viewer) (:: 'Map 'Tag 'Dynamic)
+                      , error-data (:show-core? store) (:cirru? store)
                   (:none)
                     div
                       {}
@@ -428,6 +430,7 @@
               match (browser/visibility-state)
                 (:visible) (fetch-error-file!)
                 _ &unit
+              , &unit
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -453,15 +456,21 @@
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (_reel _prev) (render-app!) &unit
-                reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
+                reset! *reel $ decode-map-as (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel)
+              fn (raw-op)
+                hint-fn $ {}
+                  :args $ [] 'Dynamic
+                  :return 'Unit
+                if (enum? raw-op) (dispatch! raw-op) (raise "|Expected Enum operation")
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []

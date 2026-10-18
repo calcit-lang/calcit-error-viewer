@@ -52,7 +52,9 @@ Reel 中已经存在的 Store 使用 `struct-match` 读取，ViewerState 区分�
 
 事件回调明确使用应用真实的 `Enum -> Unit` dispatch 合同，Prompt 文本参数为 String；show 的返回值不再冒充事件回调的 Unit。旧 Reel 动态 updater 接口在调用处验证 Store/Enum/id/time；已经是 nominal Store 的值保留身份，不重复按 Map 解码。这里保留原 Reel Map、调试控制与热更新路径，不冒称已迁移成 `reel.typed/State`。
 
-原先三个完整 strict workflow 的应用 proof 义务已消除，额外暴露的 `struct-match` 宏问题采用真实外层 `struct?` 守卫，跟踪核心 [#2148](https://github.com/calcit-lang/calcit/issues/2148)。完整 workflow **仍未通过**：正式 Theme 0.4.9 的新建空 Option Ref 被推断为 `Ref<Option<Never>>`，与 hover 存储合同不匹配，已报告 [Theme #25](https://github.com/Cirru/calcit-theme.calcit/issues/25)。不以普通 all-defs/public 通过冒称完整 workflow 已通过，也不通过 unsafe、依赖缓存修改或预算放宽绕过。
+原先三个完整 strict workflow 的应用 proof 义务已消除，额外暴露的 `struct-match` 宏问题采用真实外层 `struct?` 守卫，跟踪核心 [#2148](https://github.com/calcit-lang/calcit/issues/2148)。后续补上 Respo 游标返回值到原 Map 合同的受检边界、动态 render 回调的 Enum 守卫、reload 的实际 Map 解码及 Unit 返回；visibility 回调仍发起原异步读取，但显式返回 Unit，不改变为等待请求完成。
+
+配合 [Theme #26](https://github.com/Cirru/calcit-theme.calcit/pull/26) 的未发布 0.4.10 候选源码，完整 workflow 与原三项 JS 回归已通过；测试后已恢复正式模块图。当前声明的正式 Theme 仍是 0.4.9，完整 workflow **仍受该发布版阻塞**：新建空 Option Ref 被推断为 `Ref<Option<Never>>`，与 hover 存储合同不匹配，跟踪 [Theme #25](https://github.com/Cirru/calcit-theme.calcit/issues/25)。不以候选源码、普通 all-defs/public 或绿色 CI 冒称已完成正式依赖的完整 workflow 验收，也不通过 unsafe、依赖缓存修改或预算放宽绕过。
 
 ### Workflow
 

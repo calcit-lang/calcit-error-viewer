@@ -65,5 +65,17 @@ test('loading error data preserves existing viewer state and visibility', () => 
   assert.match(make_string(comp_container(clt.assoc(reel, t.store, store))), /Error Viewer/);
   assert.match(make_string(comp_container(clt.assoc(reel, t.store, next))), /Error Viewer/);
   const error = clt.option_$o_unwrap(field(next, t['error-data']));
-  assert.equal(typeof make_string(comp_viewer(map(t.cursor, list()), error, true, false)), 'string');
+  const emptyStack = make_string(comp_viewer(map(t.cursor, list()), error, true, false));
+  assert.match(emptyStack, /fixture/);
+  assert.doesNotMatch(emptyStack, /No args|>Cirru</);
+  const withFrame = updater(next, op(t['set-error'], clt.parse_cirru_edn('{} (:message |fixture)\n  :stack $ []\n    {} (:def |fixture/main!) (:kind :fn)\n      :args $ []\n      :code $ quote $ println |hello\n')), 'frame', 3);
+  const framedError = clt.option_$o_unwrap(field(withFrame, t['error-data']));
+  const selected = make_string(comp_viewer(map(t.cursor, list()), framedError, true, false));
+  assert.match(selected, /fixture/);
+  assert.match(selected, /No args/);
+  assert.match(selected, />Cirru</);
+  assert.match(selected, /hello/);
+  const missingFrame = make_string(comp_viewer(map(t.cursor, list(), t.data, map(t.pointer, 4)), framedError, true, false));
+  assert.match(missingFrame, /fixture/);
+  assert.doesNotMatch(missingFrame, /No args|>Cirru</);
 });

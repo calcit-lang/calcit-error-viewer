@@ -162,66 +162,70 @@
                           comp-tiny-entry (:def info) selected?
                           comp-entry (:def info) (:kind info) selected? $ fn (d!)
                             d! $ :: :states cursor $ assoc state :pointer idx
-                if-let (target target-option)
-                  let
-                      code-list $ &cirru-quote:to-list $ :code target
-                    div
-                      {}
-                        :class-name $ str-spaced css/expand css/column
-                        :style $ {} $ :padding "|0 8px"
+                div
+                  {}
+                    :class-name $ str-spaced css/expand css/column
+                    :style $ {} $ :padding "|0 8px"
+                  div
+                    {} (:class-name css/row-parted)
+                      :style $ {} (:color :red) (:font-size 16)
+                    <> $ :message error-data
+                    if-let (target target-option)
+                      span $ {} (:inner-text |Cirru)
+                        :style $ if cirru?
+                          {} (:cursor :pointer) (:user-select :none)
+                            :color $ hsl 200 90 80
+                          {} (:cursor :pointer) (:user-select :none)
+                            :color $ hsl 0 0 40
+                        :on-click $ fn (e d!)
+                          d! $ :: :toggle-cirru
+                      div $ {}
+                  if-let (target target-option)
+                    let
+                        code-list $ &cirru-quote:to-list $ :code target
                       div
-                        {} (:class-name css/row-parted)
-                          :style $ {} (:color :red) (:font-size 16)
-                        <> $ :message error-data
-                        span $ {} (:inner-text |Cirru)
-                          :style $ if cirru?
-                            {} (:cursor :pointer) (:user-select :none)
-                              :color $ hsl 200 90 80
-                            {} (:cursor :pointer) (:user-select :none)
-                              :color $ hsl 0 0 40
-                          :on-click $ fn (e d!)
-                            d! $ :: :toggle-cirru
-                      div
-                        {} $ :class-name css-args-area
-                        if
-                          empty? $ :args target
-                          div ({})
-                            <> "|No args" $ {} (:font-family ui/font-fancy) (:padding "|0 9px")
-                          list-> ({})
-                            -> (:args target)
-                              map-indexed $ fn (idx arg)
-                                [] idx $ div
-                                  {} $ :class-name css/row-middle
-                                  <> (str idx)
-                                    {} (:margin "|0 6px") (:font-size 12)
-                                      :color $ hsl 0 0 80 0.5
-                                      :font-family ui/font-code
-                                  =< 4 nil
-                                  if
-                                    or
-                                      &= :syntax $ :kind target
-                                      &= :macro $ :kind target
-                                    <> $ format-to-lisp arg
-                                    <> $ str arg
-                      =< nil 8
-                      div
-                        {}
-                          :class-name $ str-spaced css/expand css/column css/font-code
-                          :style $ {} (:white-space :pre) (:line-height |21px)
-                            :border $ str "|1px solid " $ hsl 0 0 60 0.2
-                            :padding "|8px 8px"
-                        if (list? code-list)
-                          if cirru?
-                            div
-                              {} (:class-name css/expand)
-                                :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
-                              render-expr code-list
-                            pre $ {}
-                              :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
-                              :innerHTML $ generateHtml $ trim
-                                format-cirru $ [] code-list
-                          <> $ str code-list
-                  div ({}) (=< |nothing nil)
+                        {} $ :class-name $ str-spaced css/expand css/column
+                        div
+                          {} $ :class-name css-args-area
+                          if
+                            empty? $ :args target
+                            div ({})
+                              <> "|No args" $ {} (:font-family ui/font-fancy) (:padding "|0 9px")
+                            list-> ({})
+                              -> (:args target)
+                                map-indexed $ fn (idx arg)
+                                  [] idx $ div
+                                    {} $ :class-name css/row-middle
+                                    <> (str idx)
+                                      {} (:margin "|0 6px") (:font-size 12)
+                                        :color $ hsl 0 0 80 0.5
+                                        :font-family ui/font-code
+                                    =< 4 nil
+                                    if
+                                      or
+                                        &= :syntax $ :kind target
+                                        &= :macro $ :kind target
+                                      <> $ format-to-lisp arg
+                                      <> $ str arg
+                        =< nil 8
+                        div
+                          {}
+                            :class-name $ str-spaced css/expand css/column css/font-code
+                            :style $ {} (:white-space :pre) (:line-height |21px)
+                              :border $ str "|1px solid " $ hsl 0 0 60 0.2
+                              :padding "|8px 8px"
+                          if (list? code-list)
+                            if cirru?
+                              div
+                                {} (:class-name css/expand)
+                                  :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
+                                render-expr code-list
+                              pre $ {}
+                                :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
+                                :innerHTML $ generateHtml $ trim
+                                  format-cirru $ [] code-list
+                            <> $ str code-list
+                    div ({}) (=< |nothing nil)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/ErrorData 'Bool 'Bool

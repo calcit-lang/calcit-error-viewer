@@ -162,9 +162,9 @@
         'comp-viewer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-viewer (states error-data show-core? cirru?)
             let
-                cursor $ option:unwrap-or (get states :cursor) ([])
+                cursor $ .unwrap-or (get states :cursor) ([])
                 state $ let
-                    raw-state $ option:unwrap-or (get states :data)
+                    raw-state $ .unwrap-or (get states :data)
                       {} $ :pointer 0
                   if (struct? raw-state)
                     struct-match raw-state (app.schema/ViewerState checked checked)
@@ -334,13 +334,13 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'exposed-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def exposed-port
             let
-                raw $ option:unwrap-or (get-env |exposed-port) |6011
+                raw $ .unwrap-or (get-env |exposed-port) |6011
                 parsed $ result:unwrap-or (parse-float raw) 6011
               if
                 and (integer? parsed) (>= parsed 1) (<= parsed 65535)
@@ -438,14 +438,14 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ respo.ffi.browser/query-selector |.app
+            .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
           :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
-              option:unwrap $ get config/site :storage-key
-              format-cirru-edn $ option:unwrap $ get @*reel :store
+              .unwrap $ get config/site :storage-key
+              format-cirru-edn $ .unwrap $ get @*reel :store
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)

@@ -39,6 +39,10 @@ v1.2.0 同时检查生成 HTML 的同域脚本及样式引用是否位于公开�
 
 ### 0.30.1 迁移候选
 
+本轮先在匹配当前 alpha.5 的官方编辑器中迁移 7 处 Option helper 到 `.unwrap-or` / `.unwrap`，
+默认值、schema、3 项原 JS 业务测试及两处 `hud!` 保持不变。当前仍不是正式 0.30.1 完整依赖图：
+Theme main 已迁移为 0.4.11，但尚无正式 tag；待其发布后再升级 CLI/procs 和模块，不使用 main/hash 或忽略冲突绕过。
+
 Theme 依赖使用已正式发布的 [0.4.10](https://github.com/Cirru/calcit-theme.calcit/releases/tag/0.4.10)，本地验收使用该 tag 的独立检出，不引用上游候选工作树。所有模块使用正式 tag，不使用 hash 或模块 alpha；Calcit/procs 的 alpha 版本是上述明确标注的工具链预发布版。完整远端依赖解析仍由 PR CI 中的 `caps --strict --ci` 验证。
 
 错误文件格式、`http://localhost:<exposed-port>/load-error`、原 `workflow` 存储 key 和生产部署目的地保持不变；没有启用原来注释掉的存储恢复。原计时器递归错误导致后续间隔不断乘 1000，现修正为持续每 60 秒保存，使用者应注意保存会按原设定频率实际发生。HTTP 状态、网络及读取失败记录为明确错误，不把失败载荷送入错误数据解码器。

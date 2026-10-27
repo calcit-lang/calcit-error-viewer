@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/ |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -62,12 +62,16 @@
             :args $ [] $ :: 'Map 'Tag 'Dynamic
         'comp-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-entry (entry kind selected? on-select)
-            let[] (ns def-name) (split entry |/)
+            let
+                parts $ split entry |/
+                ns $ .unwrap-or (nth parts 0) |-
+                def-name $ .unwrap-or (nth parts 1) |-
               div
                 {}
                   :class-name $ str-spaced css/row-parted style-entry
-                  :style $ if selected? $ {}
-                    :background-color $ hsl 0 0 22
+                  :style $ if selected?
+                    {} $ :background-color $ hsl 0 0 22
+                    {}
                   :on-click $ fn (e d!)
                     hint-fn $ {}
                       :args $ [] (:: 'Map 'Tag 'Dynamic)
@@ -82,10 +86,10 @@
                   div
                     {} (:class-name css/font-code)
                       :style $ {} $ :line-height |22px
-                    <> $ or def-name |-
+                    <> def-name
                   div
                     {} $ :style $ {} (:font-size 10) (:line-height |14px)
-                    <> $ or ns |-
+                    <> ns
                 match kind
                   :syntax $ <> |syntax $ str-spaced style-tag style-color-syntax
                   :macro $ <> |macro $ str-spaced style-tag style-color-macro
@@ -153,8 +157,9 @@
           :code $ quote $ defn comp-tiny-entry (path selected?)
             div
               {} (:class-name style-tiny-entry)
-                :style $ if selected? $ {}
-                  :background-color $ hsl 0 0 22
+                :style $ if selected?
+                  {} $ :background-color $ hsl 0 0 22
+                  {}
               <> path
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
@@ -503,6 +508,10 @@
             js-ffi.browser :as browser
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'DispatchOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def DispatchOp (:: :toggle-core)
+          :examples $ []
+          :schema $ :: 'Enum
         'ErrorData $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ErrorData (:message 'String)
             :stack $ :: 'List 'app.schema/ErrorFrame

@@ -3,7 +3,7 @@ import test from 'node:test';
 import * as clt from '../js-out/calcit.core.mjs';
 import { store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
-import { comp_container, comp_header, comp_viewer } from '../js-out/app.comp.container.mjs';
+import { comp_container, comp_header, comp_viewer, comp_entry } from '../js-out/app.comp.container.mjs';
 import { reel } from '../js-out/reel.schema.mjs';
 import { child_pair_value, component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
 import { make_string } from '../js-out/respo.render.html.mjs';
@@ -81,4 +81,11 @@ test('loading error data preserves existing viewer state and visibility', () => 
   const missingFrame = make_string(comp_viewer(map(t.cursor, list(), t.data, map(t.pointer, 4)), framedError, true, false));
   assert.match(missingFrame, /fixture/);
   assert.doesNotMatch(missingFrame, /No args|>Cirru</);
+  // Error frames may name an unqualified or missing entry; keep the original dash fallback.
+  const fnKind = clt.init_tags(['fn']).fn;
+  for (const entry of ['fixture', '']) {
+    const html = make_string(comp_entry(entry, fnKind, false, () => {}));
+    assert.match(html, />-</);
+    if (entry) assert.match(html, />fixture</);
+  }
 });

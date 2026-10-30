@@ -46,9 +46,9 @@ jobs:
         yarn install --immutable
         caps verify --toolchain
         calcit calcit.cirru edit format
-        git diff --exit-code -- calcit.cirru
+        git diff --exit-code --quiet -- calcit.cirru
         calcit calcit.cirru --check-only --all-defs
-        calcit calcit.cirru fix --workflow strict --verify
+        calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
         calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.main --ns app.schema --ns app.updater --summary-only --format json
 
     - name: Build client with CDN asset URLs

@@ -4,7 +4,7 @@
 
 ## 使用者需要注意
 
-本轮迁移到正式 Calcit / `@calcit/procs` **0.31.0**。错误文件格式、开放 Enum 派发合同、`hud!` 页面报错、`workflow` 存储 key 和原前端部署路径保持不变。无命名空间或空的栈帧名称通过 Option 默认值显示 `-`，不再被新版 List 解构的越界检查提前终止。
+本轮候选迁移到正式 Calcit / `@calcit/procs` **0.32.1**。错误文件格式、开放 Enum 派发合同、`hud!` 页面报错、`workflow` 存储 key 和原前端部署路径保持不变。无命名空间或空的栈帧名称通过 Option 默认值显示 `-`，不再被新版 List 解构的越界检查提前终止。
 
 页面自动读取 `http://localhost:<exposed-port>/load-error`，默认端口 6011；浏览器通过 URL 查询参数设置端口，例如 `?exposed-port=19260`。网络、HTTP 状态和读取失败会记录错误，不把失败载荷送入数据解码器。
 
@@ -12,7 +12,7 @@
 
 ## 开发与门禁
 
-使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.31.0。项目文件为 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`。
+使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.32.1。项目文件为 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`。
 
 ```sh
 caps --strict --ci
@@ -27,11 +27,11 @@ yarn dev
 
 `yarn dev` 编译一次并启动 Vite；持续编辑时另开终端运行 `calcit calcit.cirru js -w`。
 
-依赖使用已发布的精确 tag，包括 Theme 0.4.11、JS FFI 0.2.7 和 Memof 0.0.41；Respo 系列仍使用已配对正式 0.31.0 的已发布 alpha tag，具体版本见 `deps.cirru`，不以 main/hash 代替发布版本。
+依赖使用已发布的 Theme 0.4.12、Alerts 0.11.0-alpha.4、Reel 0.7.0-alpha.5、Respo UI 0.9.0、Respo 0.17.1、JS FFI 0.2.9 和 Memof 0.0.42；Caps 严格安装解析 8 个模块，并验证 Calcit 与 @calcit/procs 均为 0.32.1。Alerts/Reel 保留已验收的精确 alpha 版本，避免把尚未发布的正式版本写入依赖。
 
-迁移显式声明原开放 Enum dispatch slot，未封闭操作协议。未选中栈帧的样式使用空 Map；缺失名称使用 Option 分支。原三项 JS 回归保留，并在实际组件断言中覆盖空名称和无斜杠名称。没有放宽类型门禁或增加验证脚本。
+0.32.0 通过官方格式化迁移 13 处类型标注，35 个定义的 schema 保持一致；保留原开放 Enum dispatch slot，未封闭操作协议。未选中栈帧的样式使用空 Map；缺失名称使用 Option 分支。原三项 JS 回归保留，并在实际组件断言中覆盖空名称和无斜杠名称。没有放宽类型门禁或增加验证脚本。
 
-本地验收：完整 strict、272 个全定义、35 个公开定义、原三项 JS 回归及构建通过。隔离页面通过 HTTP 自动载入合成错误，完成栈帧切换、核心栈折叠、无命名空间帧显示、Cirru 高亮和刷新重新拉取；浏览器无 warning/error。独立只读评审未发现新增问题。远端 CI 及部署以对应工作流结果为准。
+本地验收：在上述已发布依赖图上，完整 strict、272 个全定义、35 个公开定义、不可变安装、原三项 JS 回归及构建通过。隔离消费者以相同 Theme 源码通过 HTTP 自动载入合成错误，完成栈帧切换、核心栈折叠、Cirru 结构渲染及刷新重新拉取；浏览器无 warning/error。悬停进入已观察到 on-hover 类，离开清理不计为已完成验收。此前 0.32.0 的无命名空间帧页面验收和独立只读评审保留；本轮仍需远端 CI，未部署本项目。
 
 ## 部署
 

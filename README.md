@@ -4,10 +4,15 @@
 
 ## 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对官方 **0.34.2**，重新安装整图、生成 JS 并重启开发服务。
-使用已发布的 Theme **0.5.0**、Alerts **0.11.3**、Reel **0.8.1**、UI **0.12.1**、
-Respo **0.18.1**、JS-FFI **0.2.9**、Memof **0.0.44**，传递 Router **0.10.1**。
-这是保留 Map 事件与 Router struct 的兼容图，不能与 Respo 0.19 新事件图混装。
+CLI 与 `@calcit/procs` 配对官方 **0.34.2**，协调安装完整正式图并重新生成 JS。
+使用正式 Theme **0.6.0**、Alerts **0.12.0**、Reel **0.9.0**、UI **0.14.1**、
+Respo **0.19.2**、JS-FFI **0.2.10**、Memof **0.0.44** 和传递 Router **0.11.2**。
+这是现代名义 RespoEvent 图，不能与旧 Map DOM handler 合同混装；三个 DOM handler 已同步。
+渲染入口使用 render-with!，组件构建与实际渲染同在 managed memo frame。
+renderer 的开放 Enum 输入保持原实际合同，没有将它伪称为封闭操作模型。
+
+四处数值 spacer 保持原宽高；缺失帧的 `nothing` 原被误当作宽度，现在按文字显示，避免无效 CSS。
+原错误协议、参数开放边界、HUD 与保存顺序保持；未添加测试脚本或放宽类型门禁。
 
 错误帧源码使用公开 CirruQuote `.to-list` / `.leaf-text` Option 分支：列表在进入 Theme 前
 按递归 `String | List<CirruNode>` 模型受检解码，叶根继续显示原 token，避免内部转换对叶根抛错。
@@ -44,10 +49,13 @@ Caps 严格安装解析上述 8 个正式模块，并校验 Calcit / procs 均�
 
 ## 验收范围
 
-正式依赖图通过全部 275 定义、完整 strict、immutable、原三项 Node 渲染回归和构建。
-原断言保留，在既有回归中补充叶根显示原 token 的场景；不新增验证脚本或类型预算。
-实际组件的纯内存浏览器验收覆盖帧切换、中文/emoji 参数与源码、列表/叶根/空表达式、
-Cirru/格式化展示切换，控制台无 warn/error。此验收没有运行 main 的 HTTP、存档或定时保存流程。
+完整正式 tag 图已通过 Caps strict、immutable、toolchain、全部 281 个定义、35 个原公开范围定义、
+完整 strict、原三项 Node 回归及构建，dynamic-method/deprecated 为零。原测试与断言保持。
+实际回环 HTTP 验收加载两帧合成错误，覆盖中文/emoji 参数与源码、列表/叶根切换、Cirru 模式、
+Theme DOM active 事件、Load Text 多行提交和空栈占位，控制台无错误。
+刷新重新从合成 HTTP 服务加载，不作为存档恢复验收；未改动或重验真实存档/定时保存。
+正式 Theme / Alerts Snapshot 与上述实际页面验收的候选源码逐字节相同。
+
 公开 CirruQuote 列表合同的进一步类型收敛见 [Calcit #2556](https://github.com/calcit-lang/calcit/issues/2556)。
 
 ## 部署

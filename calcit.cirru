@@ -73,7 +73,7 @@
                     {} $ :background-color $ hsl 0 0 22
                     {}
                   :on-click $ fn (e d!)
-                    hint-fn $ Fn (Map Tag Dynamic)
+                    hint-fn $ Fn respo.schema/RespoEvent
                       Fn Enum $ -> Unit
                       -> Unit
                     on-select d!
@@ -115,17 +115,17 @@
                 {} (:class-name css/row-middle)
                   :style $ {} (:height 40) (:padding "|0 8px") (:width "|calc(20% - 16px)")
                 <> "|Error Viewer" $ {} (:font-family ui/font-fancy) (:font-size 20) (:font-weight 300)
-                =< 8 nil
+                space-x 8
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
-                    hint-fn $ Fn (Map Tag Dynamic)
+                    hint-fn $ Fn respo.schema/RespoEvent
                       Fn Enum $ -> Unit
                       -> Unit
                     .show error-plugin d! $ fn (text)
                       hint-fn $ Fn String $ -> Unit
                       d! $ :: :set-error $ parse-cirru-edn text
                     , &unit
-                =< 8 nil
+                space-x 8
                 span $ {} (:inner-text |calcit.core)
                   :style $ if show-core?
                     {} (:font-size 12) (:cursor :pointer) (:user-select :none)
@@ -133,7 +133,7 @@
                     {} (:font-size 12) (:cursor :pointer) (:user-select :none)
                       :color $ hsl 0 0 40
                   :on-click $ fn (e d!)
-                    hint-fn $ Fn (Map Tag Dynamic)
+                    hint-fn $ Fn respo.schema/RespoEvent
                       Fn Enum $ -> Unit
                       -> Unit
                     d! $ :: :toggle-core
@@ -222,14 +222,14 @@
                                       {} (:margin "|0 6px") (:font-size 12)
                                         :color $ hsl 0 0 80 0.5
                                         :font-family ui/font-code
-                                    =< 4 nil
+                                    space-x 4
                                     if
                                       or
                                         &= :syntax $ :kind target
                                         &= :macro $ :kind target
                                       <> $ format-to-lisp arg
                                       <> $ str arg
-                        =< nil 8
+                        space-y 8
                         div
                           {}
                             :class-name $ str-spaced css/expand css/column css/font-code
@@ -249,7 +249,7 @@
                                     format-cirru $ [] code-list
                             (:none)
                               <> $ .unwrap $ .leaf-text (:code target)
-                    div ({}) (=< |nothing nil)
+                    div ({}) (<> |nothing)
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ErrorData Bool Bool (-> respo.schema/Component)
         'css-args-area $ %{} 'CodeEntry (:doc |)
@@ -308,7 +308,7 @@
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
             respo.core :refer $ defcomp defeffect <> >> div button textarea span input list-> pre a
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x space-y
             reel.comp.reel :refer $ comp-reel
             respo.comp.inspect :refer $ comp-inspect
             app.config :refer $ dev?
@@ -446,9 +446,10 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel)
+            render-with! mount-target
+              fn () $ comp-container @*reel
               fn (raw-op)
-                hint-fn $ Fn Dynamic $ -> Unit
+                hint-fn $ Fn Enum $ -> Unit
                 if (enum? raw-op) (dispatch! raw-op) (raise "|Expected Enum operation")
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
@@ -466,7 +467,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache!
+            respo.core :refer $ render-with! clear-cache!
             app.comp.container :refer $ comp-container
             app.updater :refer $ updater
             app.schema :as schema

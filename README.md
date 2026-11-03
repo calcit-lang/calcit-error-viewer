@@ -1,3 +1,11 @@
+### Calcit 0.34.2 / Theme 递归 union 迁移候选
+
+使用者影响：CLI 与 `@calcit/procs` 配对官方 0.34.2，错误帧的 CirruQuote 在进入 Theme 前按递归 `String | List<CirruNode>` 受检解码。合法源码、中文/emoji、空表达式和原渲染逻辑保持；非法嵌套节点会在渲染入口拒绝。错误参数 `args` 仍可包含任意 Calcit 值，原状态树和 ws/错误文件合同不因此收紧。
+
+候选整图保留 Respo 0.18.1 Map 事件及 Router struct 兼容接口，使用 Reel 0.8.1、JS-FFI 0.2.9、Memof 0.0.44，等待 Theme 0.5.0、Alerts 0.11.3、UI 0.12.1、Router 0.10.1 正式图完成；当前后三个维护依赖和 Theme 是明确复制的本地候选，尚不是 Caps 正式发布图验收。
+
+Reel 读取改为 require-field 后继续检查本地 Store 身份；两个可选调试面板使用显式 Option，HUD、错误加载和原三项回归保留。没有新增 unsafe 或放宽类型门禁/基线，不新增验证脚本。全定义、完整 strict、原 Node 三项回归与构建已通过候选源码预检；真实发布图、页面交互与原完整 CI 仍需后续验收。此候选不合并或部署站点。
+
 # Error Viewer
 
 用于在页面查看 Calcit 错误、调用栈和 Cirru 高亮。

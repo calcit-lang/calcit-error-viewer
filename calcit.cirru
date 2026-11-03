@@ -29,7 +29,7 @@
           :code $ quote $ defcomp comp-container (reel)
             let
                 store $ let
-                    raw-store $ reel-schema/read-field reel :store
+                    raw-store $ reel-schema/require-field reel :store
                   if (struct? raw-store)
                     struct-match raw-store (app.schema/Store checked checked)
                       _ _ $ raise "|Expected app.schema/Store"
@@ -42,7 +42,8 @@
                 match (:error-data store)
                   (:some error-data)
                     comp-viewer
-                      decode-map-as (>> states :viewer) (:: 'Map 'Tag 'Dynamic)
+                      decode-map-as (>> states :viewer)
+                        quote $ Map Tag Dynamic
                       , error-data (:show-core? store) (:cirru? store)
                   (:none)
                     div
@@ -51,8 +52,12 @@
                         :on-click $ fn (e d!) (click-load!)
                       memof1-call comp-header (>> states :header) (:show-core? store)
                       <> "|Click to load error info in Cirru Edn"
-                when dev? $ comp-reel (>> states :reel) reel $ {}
-                when dev? $ comp-inspect |Store store $ {} (:bottom 4)
+                if dev?
+                  Option :some $ comp-reel (>> states :reel) reel $ {}
+                  Option :none
+                if dev?
+                  Option :some $ comp-inspect |Store store $ {} (:bottom 4)
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (-> respo.schema/Component)
         'comp-entry $ %{} 'CodeEntry (:doc |)
@@ -236,7 +241,7 @@
                               div
                                 {} (:class-name css/expand)
                                   :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
-                                render-expr code-list
+                                render-expr $ decode-map-as code-list $ quote (List calcit-theme.schema/CirruNode)
                               pre $ {}
                                 :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
                                 :innerHTML $ generateHtml $ trim
@@ -430,7 +435,8 @@
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (_reel _prev) (render-app!) &unit
-                reset! *reel $ decode-map-as (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
+                reset! *reel $ decode-map-as (refresh-reel @*reel schema/store updater)
+                  quote $ Map Tag Dynamic
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
@@ -476,37 +482,37 @@
           :examples $ []
           :schema $ quote Enum
         'ErrorData $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct ErrorData (:message 'String)
+          :code $ quote $ defstruct ErrorData (:message String)
             :stack $ quote $ List app.schema/ErrorFrame
           :examples $ []
           :schema $ quote StructDef
         'ErrorFrame $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct ErrorFrame (:def 'String) (:kind 'Tag)
+          :code $ quote $ defstruct ErrorFrame (:def String) (:kind Tag)
             :args $ quote $ List Dynamic
-            :code 'CirruQuote
+            :code CirruQuote
           :examples $ []
           :schema $ quote StructDef
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :states
               quote $ List Dynamic
-              , 'Dynamic
-            :set-error 'Dynamic
+              , Dynamic
+            :set-error Dynamic
             :toggle-core
             :toggle-cirru
-            :hydrate-storage 'Dynamic
+            :hydrate-storage Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
             :error-data $ quote $ Option app.schema/ErrorData
-            :show-core? 'Bool
-            :cirru? 'Bool
+            :show-core? Bool
+            :cirru? Bool
             :states $ quote $ Map Tag Dynamic
           :examples $ []
           :schema $ quote StructDef
         'ViewerState $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct ViewerState (:pointer 'Number)
+          :code $ quote $ defstruct ViewerState (:pointer Number)
           :examples $ []
           :schema $ quote StructDef
         'store $ %{} 'CodeEntry (:doc |)
@@ -524,9 +530,9 @@
               (:states cursor s)
                 assoc store :states $ decode-map-as
                   update-state-tree (:states store)
-                    decode-map-as cursor $ :: 'List 'Dynamic
+                    decode-map-as cursor $ quote $ List Dynamic
                     , s
-                  :: 'Map 'Tag 'Dynamic
+                  quote $ Map Tag Dynamic
               (:set-error e)
                 app.schema/Store :error-data
                   Option :some $ decode-map-as e app.schema/ErrorData

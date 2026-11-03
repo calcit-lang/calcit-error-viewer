@@ -204,7 +204,7 @@
                       div $ {}
                   if-let (target target-option)
                     let
-                        code-list $ &cirru-quote:to-list $ :code target
+                        code-list-option $ .to-list $ :code target
                       div
                         {} $ :class-name $ str-spaced css/expand css/column
                         div
@@ -236,17 +236,19 @@
                             :style $ {} (:white-space :pre) (:line-height |21px)
                               :border $ str "|1px solid " $ hsl 0 0 60 0.2
                               :padding "|8px 8px"
-                          if (list? code-list)
-                            if cirru?
-                              div
-                                {} (:class-name css/expand)
-                                  :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
-                                render-expr $ decode-map-as code-list $ quote (List calcit-theme.schema/CirruNode)
-                              pre $ {}
-                                :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
-                                :innerHTML $ generateHtml $ trim
-                                  format-cirru $ [] code-list
-                            <> $ str code-list
+                          match code-list-option
+                            (:some code-list)
+                              if cirru?
+                                div
+                                  {} (:class-name css/expand)
+                                    :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
+                                  render-expr $ decode-map-as code-list $ quote (List calcit-theme.schema/CirruNode)
+                                pre $ {}
+                                  :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
+                                  :innerHTML $ generateHtml $ trim
+                                    format-cirru $ [] code-list
+                            (:none)
+                              <> $ .unwrap $ .leaf-text (:code target)
                     div ({}) (=< |nothing nil)
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ErrorData Bool Bool (-> respo.schema/Component)

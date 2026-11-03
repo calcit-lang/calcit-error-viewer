@@ -88,4 +88,10 @@ test('loading error data preserves existing viewer state and visibility', () => 
     assert.match(html, />-</);
     if (entry) assert.match(html, />fixture</);
   }
+  // A leaf-root quote remains valid error source; use the public leaf/list API.
+  const leaf = updater(next, op(t['set-error'], clt.parse_cirru_edn('{} (:message |leaf-fixture)\n  :stack $ []\n    {} (:def |fixture/leaf) (:kind :fn)\n      :args $ []\n      :code $ quote leaf-source\n')), 'leaf', 4);
+  const leafError = clt.option_$o_unwrap(field(leaf, t['error-data']));
+  const leafHtml = make_string(comp_viewer(map(t.cursor, list()), leafError, true, true));
+  assert.match(leafHtml, />leaf-source</);
+  assert.match(leafHtml, /No args/);
 });

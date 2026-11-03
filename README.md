@@ -4,15 +4,28 @@
 
 ## 使用者需要注意
 
-本轮候选迁移到正式 Calcit / `@calcit/procs` **0.32.1**。错误文件格式、开放 Enum 派发合同、`hud!` 页面报错、`workflow` 存储 key 和原前端部署路径保持不变。无命名空间或空的栈帧名称通过 Option 默认值显示 `-`，不再被新版 List 解构的越界检查提前终止。
+CLI 与 `@calcit/procs` 配对官方 **0.34.2**，重新安装整图、生成 JS 并重启开发服务。
+使用已发布的 Theme **0.5.0**、Alerts **0.11.3**、Reel **0.8.1**、UI **0.12.1**、
+Respo **0.18.1**、JS-FFI **0.2.9**、Memof **0.0.44**，传递 Router **0.10.1**。
+这是保留 Map 事件与 Router struct 的兼容图，不能与 Respo 0.19 新事件图混装。
 
-页面自动读取 `http://localhost:<exposed-port>/load-error`，默认端口 6011；浏览器通过 URL 查询参数设置端口，例如 `?exposed-port=19260`。网络、HTTP 状态和读取失败会记录错误，不把失败载荷送入数据解码器。
+错误帧源码使用公开 CirruQuote `.to-list` / `.leaf-text` Option 分支：列表在进入 Theme 前
+按递归 `String | List<CirruNode>` 模型受检解码，叶根继续显示原 token，避免内部转换对叶根抛错。
+合法中文/emoji、空表达式与嵌套源码保持；运行时 Number/Bool/nil 不是源码节点，其字面量仍是 token 文本。
+错误参数 `args` 保持任意 Calcit 值的开放合同，HUD、状态树和错误文件格式不变。
+无命名空间或空的栈帧名称继续通过 Option 默认值显示 `-`。
 
-原每 60 秒保存及离页保存仍保留；原本注释掉的存储恢复没有启用。刷新验收验证的是重新从 HTTP 载入错误，不代表存档恢复。
+页面自动读取 `http://localhost:<exposed-port>/load-error`，默认端口 6011；
+例如用 `?exposed-port=19260` 设置端口。网络、HTTP 状态和读取失败会记录错误，
+不把失败载荷送入数据解码器。
+
+原每 60 秒保存及离页保存仍保留；原本注释掉的存储恢复没有启用。
+刷新会重新从 HTTP 载入错误，不代表存档恢复。`workflow` 存储 key 与前端部署路径保持。
 
 ## 开发与门禁
 
-使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.32.1。项目文件为 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`。
+使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.34.2。
+项目使用 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`，不提交 `js-out`。
 
 ```sh
 caps --strict --ci
@@ -26,16 +39,22 @@ yarn dev
 ```
 
 `yarn dev` 编译一次并启动 Vite；持续编辑时另开终端运行 `calcit calcit.cirru js -w`。
+Caps 严格安装解析上述 8 个正式模块，并校验 Calcit / procs 均为 0.34.2。
+`calcit.cirru` 是非 generated 的项目源码，保留文本 diff 供评审。
 
-依赖使用已发布的 Theme 0.4.12、Alerts 0.11.0-alpha.4、Reel 0.7.0-alpha.5、Respo UI 0.9.0、Respo 0.17.1、JS FFI 0.2.9 和 Memof 0.0.42；Caps 严格安装解析 8 个模块，并验证 Calcit 与 @calcit/procs 均为 0.32.1。Alerts/Reel 保留已验收的精确 alpha 版本，避免把尚未发布的正式版本写入依赖。
+## 验收范围
 
-0.32.0 通过官方格式化迁移 13 处类型标注，35 个定义的 schema 保持一致；保留原开放 Enum dispatch slot，未封闭操作协议。未选中栈帧的样式使用空 Map；缺失名称使用 Option 分支。原三项 JS 回归保留，并在实际组件断言中覆盖空名称和无斜杠名称。没有放宽类型门禁或增加验证脚本。
-
-本地验收：在上述已发布依赖图上，完整 strict、272 个全定义、35 个公开定义、不可变安装、原三项 JS 回归及构建通过。隔离消费者以相同 Theme 源码通过 HTTP 自动载入合成错误，完成栈帧切换、核心栈折叠、Cirru 结构渲染及刷新重新拉取；浏览器无 warning/error。悬停进入已观察到 on-hover 类，离开清理不计为已完成验收。此前 0.32.0 的无命名空间帧页面验收和独立只读评审保留；本轮仍需远端 CI，未部署本项目。
+正式依赖图通过全部 275 定义、完整 strict、immutable、原三项 Node 渲染回归和构建。
+原断言保留，在既有回归中补充叶根显示原 token 的场景；不新增验证脚本或类型预算。
+实际组件的纯内存浏览器验收覆盖帧切换、中文/emoji 参数与源码、列表/叶根/空表达式、
+Cirru/格式化展示切换，控制台无 warn/error。此验收没有运行 main 的 HTTP、存档或定时保存流程。
+公开 CirruQuote 列表合同的进一步类型收敛见 [Calcit #2556](https://github.com/calcit-lang/calcit/issues/2556)。
 
 ## 部署
 
-CI 只上传前端 `dist`，PR 资源使用 PR/run/attempt 独立前缀，上传及公开访问验证使用 COS Action v1.2.0 内置能力，不另加 CDN 校验脚本。原 rsync 下载校验、SSH 主机校验和生产路径不变；PR 不执行 main 的部署步骤。
+CI 只上传前端 `dist`，PR 资源使用 PR/run/attempt 独立前缀，上传及公开访问验证使用
+COS Action v1.2.0 内置能力，不另加 CDN 校验脚本。原 rsync 下载校验、SSH 主机校验和生产路径不变；
+PR 不执行 main 的部署步骤。
 
 COS Action 同时检查生成 HTML 的同域脚本和样式引用；跨域共享资源、CSS 内引用和运行时加载不在该引用检查范围。
 

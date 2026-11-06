@@ -12,7 +12,7 @@
       :defs $ {}
         'ClickTarget $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait ClickTarget
-            .click! $ quote $ Fn app.comp.container/ClickTarget (-> Unit)
+            .click! $ Fn app.comp.container/ClickTarget $ -> Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} $ :click! |click
@@ -42,8 +42,7 @@
                 match (:error-data store)
                   (:some error-data)
                     comp-viewer
-                      decode-map-as (>> states :viewer)
-                        quote $ Map Tag Dynamic
+                      decode-map-as (>> states :viewer) (Map respo.schema/CoordKey Dynamic)
                       , error-data (:show-core? store) (:cirru? store)
                   (:none)
                     div
@@ -74,7 +73,7 @@
                     {}
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn *dispatch-op $ -> Unit
                       -> Unit
                     on-select d!
                 div
@@ -95,7 +94,7 @@
           :examples $ []
           :schema $ quote $ Fn String Tag Bool
             Fn
-              Fn Enum $ -> Unit
+              Fn *dispatch-op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-header $ %{} 'CodeEntry (:doc |)
@@ -119,7 +118,7 @@
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn *dispatch-op $ -> Unit
                       -> Unit
                     .show error-plugin d! $ fn (text)
                       hint-fn $ Fn String $ -> Unit
@@ -134,12 +133,12 @@
                       :color $ hsl 0 0 40
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn Enum $ -> Unit
+                      Fn *dispatch-op $ -> Unit
                       -> Unit
                     d! $ :: :toggle-core
                 .render error-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Bool (-> respo.schema/Element)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) Bool (-> respo.schema/Element)
         'comp-tiny-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tiny-entry (path selected?)
             div
@@ -153,7 +152,9 @@
         'comp-viewer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-viewer (states error-data show-core? cirru?)
             let
-                cursor $ .unwrap-or (get states :cursor) ([])
+                cursor $ decode-map-as
+                  .unwrap-or (get states :cursor) ([])
+                  List respo.schema/CoordKey
                 state $ let
                     raw-state $ .unwrap-or (get states :data)
                       {} $ :pointer 0
@@ -242,7 +243,7 @@
                                 div
                                   {} (:class-name css/expand)
                                     :style $ {} (:background-color :black) (:padding "|40px 8px 80px 8px")
-                                  render-expr $ decode-map-as code-list $ quote (List calcit-theme.schema/CirruNode)
+                                  render-expr $ decode-map-as code-list $ List calcit-theme.schema/CirruNode
                                 pre $ {}
                                   :style $ {} (:font-family ui/font-code) (:padding-bottom 120)
                                   :innerHTML $ generateHtml $ trim
@@ -251,7 +252,7 @@
                               <> $ .unwrap $ .leaf-text (:code target)
                     div ({}) (<> |nothing)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ErrorData Bool Bool (-> respo.schema/Component)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) app.schema/ErrorData Bool Bool (-> respo.schema/Component)
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
             {} $ |& $ merge
@@ -372,7 +373,7 @@
               , @*reel op
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Enum (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! () (hint-fn Async)
             match
@@ -437,8 +438,7 @@
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (_reel _prev) (render-app!) &unit
-                reset! *reel $ decode-map-as (refresh-reel @*reel schema/store updater)
-                  quote $ Map Tag Dynamic
+                reset! *reel $ decode-map-as (refresh-reel @*reel schema/store updater) (Map Tag Dynamic)
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
@@ -449,7 +449,7 @@
             render-with! mount-target
               fn () $ comp-container @*reel
               fn (raw-op)
-                hint-fn $ Fn Enum $ -> Unit
+                hint-fn $ Fn *dispatch-op $ -> Unit
                 if (enum? raw-op) (dispatch! raw-op) (raise "|Expected Enum operation")
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
@@ -483,23 +483,21 @@
         'DispatchOp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def DispatchOp (:: :toggle-core)
           :examples $ []
-          :schema $ quote Enum
+          :schema $ quote AnyEnum
         'ErrorData $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ErrorData (:message String)
-            :stack $ quote $ List app.schema/ErrorFrame
+            :stack $ List app.schema/ErrorFrame
           :examples $ []
           :schema $ quote StructDef
         'ErrorFrame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ErrorFrame (:def String) (:kind Tag)
-            :args $ quote $ List Dynamic
+            :args $ List Dynamic
             :code CirruQuote
           :examples $ []
           :schema $ quote StructDef
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , Dynamic
+            :states (List respo.schema/CoordKey) Dynamic
             :set-error Dynamic
             :toggle-core
             :toggle-cirru
@@ -508,10 +506,10 @@
           :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :error-data $ quote $ Option app.schema/ErrorData
+            :error-data $ Option app.schema/ErrorData
             :show-core? Bool
             :cirru? Bool
-            :states $ quote $ Map Tag Dynamic
+            :states $ Map respo.schema/CoordKey Dynamic
           :examples $ []
           :schema $ quote StructDef
         'ViewerState $ %{} 'CodeEntry (:doc |)
@@ -533,9 +531,9 @@
               (:states cursor s)
                 assoc store :states $ decode-map-as
                   update-state-tree (:states store)
-                    decode-map-as cursor $ quote $ List Dynamic
+                    decode-map-as cursor $ List respo.schema/CoordKey
                     , s
-                  quote $ Map Tag Dynamic
+                  Map respo.schema/CoordKey Dynamic
               (:set-error e)
                 app.schema/Store :error-data
                   Option :some $ decode-map-as e app.schema/ErrorData
@@ -545,7 +543,7 @@
               (:hydrate-storage d) (decode-map-as d app.schema/Store)
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store Enum String Number (-> app.schema/Store)
+          :schema $ quote $ Fn app.schema/Store AnyEnum String Number (-> app.schema/Store)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require

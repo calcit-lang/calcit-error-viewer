@@ -4,12 +4,12 @@
 
 ## 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对官方 **0.34.2**，协调安装完整正式图并重新生成 JS。
-使用正式 Theme **0.6.0**、Alerts **0.12.0**、Reel **0.9.0**、UI **0.14.1**、
-Respo **0.19.2**、JS-FFI **0.2.10**、Memof **0.0.44** 和传递 Router **0.11.2**。
+CLI 与 `@calcit/procs` 配对官方 **0.35.1**，协调安装完整正式图并重新生成 JS。
+使用正式 Theme **0.6.1**、Alerts **0.13.1**、Reel **0.9.2**、UI **0.15.1**、
+Respo **0.19.4**、JS-FFI **0.2.13**、Memof **0.0.46** 和传递 Router **0.12.1**。
 这是现代名义 RespoEvent 图，不能与旧 Map DOM handler 合同混装；三个 DOM handler 已同步。
 渲染入口使用 render-with!，组件构建与实际渲染同在 managed memo frame。
-renderer 的开放 Enum 输入保持原实际合同，没有将它伪称为封闭操作模型。
+DOM 回调使用宿主分发类型槽。Reel 原始操作在解码处保持开放，查看器游标和状态键统一使用 Respo 的 `CoordKey` union。
 
 四处数值 spacer 保持原宽高；缺失帧的 `nothing` 原被误当作宽度，现在按文字显示，避免无效 CSS。
 原错误协议、参数开放边界、HUD 与保存顺序保持；未添加测试脚本或放宽类型门禁。
@@ -29,7 +29,7 @@ renderer 的开放 Enum 输入保持原实际合同，没有将它伪称为封�
 
 ## 开发与门禁
 
-使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.34.2。
+使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.35.1。
 项目使用 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`，不提交 `js-out`。
 
 ```sh
@@ -44,7 +44,7 @@ yarn dev
 ```
 
 `yarn dev` 编译一次并启动 Vite；持续编辑时另开终端运行 `calcit calcit.cirru js -w`。
-Caps 严格安装解析上述 8 个正式模块，并校验 Calcit / procs 均为 0.34.2。
+Caps 严格安装解析上述 8 个正式模块，并校验 Calcit / procs 均为 0.35.1。
 `calcit.cirru` 是非 generated 的项目源码，保留文本 diff 供评审。
 
 ## 验收范围

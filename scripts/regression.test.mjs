@@ -42,7 +42,10 @@ test('nested and root state updates preserve the state tree, not a nested store'
   assert.equal(clt.contains_$q_(field(root, t.states), t.viewer), true);
   const mixed = updater(root, op(t.states, list(t.viewer, 'item'), false), 'mixed', 3);
   assert.equal(field(field(field(field(mixed, t.states), t.viewer), 'item'), t.data), false);
-  assert.throws(() => updater(store, op(t.states, 'invalid-cursor', map()), 'invalid', 4));
+  const mixedRoot = updater(mixed, op(t.states, list(2, 'item'), false), 'mixed-root', 4);
+  assert.equal(field(field(field(field(mixedRoot, t.states), 2), 'item'), t.data), false);
+  assert.throws(() => updater(store, op(t.states, list(true), map()), 'invalid-key', 5), /decode-map-as/);
+  assert.throws(() => updater(store, op(t.states, 'invalid-cursor', map()), 'invalid', 6));
 });
 
 test('core visibility click dispatches one Enum accepted by the updater', () => {

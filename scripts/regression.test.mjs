@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as clt from '../js-out/calcit.core.mjs';
-import { decode_op, Op, parse_error_text, store } from '../js-out/app.schema.mjs';
+import { decode_op, Op, parse_error_text as parseErrorResult, store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
 import { comp_container, comp_header, comp_viewer, comp_entry } from '../js-out/app.comp.container.mjs';
 import { new_reel } from '../js-out/reel.typed.mjs';
@@ -12,6 +12,11 @@ const t = clt.init_tags(['states', 'cursor', 'data', 'viewer', 'pointer', 'event
 const map = clt._$n__$M_;
 const list = clt._$L_;
 const op = (...args) => clt._PCT__$o__$o_(Op, ...args);
+const parse_error_text = (text) => {
+  const result = parseErrorResult(text);
+  assert.equal(clt._$n_enum_$o_nth(result, 0), clt.to_tag('ok'));
+  return clt._$n_enum_$o_nth(result, 1);
+};
 const alertState = (...args) => clt.option_$o_unwrap(decode_op(clt._$o__$o_(t.states, ...args)));
 const field = (v, k) => clt.option_$o_unwrap(clt.get(v, k));
 const nth = (v, i) => clt.option_$o_unwrap(clt.nth(v, i));
@@ -64,6 +69,9 @@ test('core visibility click dispatches one Enum accepted by the updater', () => 
 });
 
 test('loading error data preserves existing viewer state and visibility', () => {
+  const invalid = parseErrorResult('{} (:message |missing-stack)');
+  assert.equal(clt._$n_enum_$o_nth(invalid, 0), clt.to_tag('err'));
+  assert.match(clt._$n_enum_$o_nth(invalid, 1), /Invalid error data/);
   const initial = updater(store, op(t.states, list(t.viewer), map(t.pointer, 0)), 'state', 1);
   const next = updater(initial, op(t['set-error'], parse_error_text('{} (:message |fixture) (:stack $ [])')), 'load', 2);
   assert.equal(field(clt.option_$o_unwrap(field(next, t['error-data'])), t.message), 'fixture');

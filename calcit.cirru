@@ -102,11 +102,10 @@
                     :input-style $ {} (:font-family ui/font-code) (:white-space :nowrap) (:min-height 320)
                     :card-style $ {} $ :max-width |1000px
                     :validator $ fn (text)
-                      hint-fn $ {} $ :args ([] 'String)
-                      println |got: text
-                      try
-                        do (parse-cirru-list text) nil
-                        fn (e) (str e)
+                      hint-fn $ Fn String $ -> String
+                      match (app.schema/parse-error-text text)
+                        (:ok _) |
+                        (:err message) message
               div
                 {} (:class-name css/row-middle)
                   :style $ {} (:height 40) (:padding "|0 8px") (:width "|calc(20% - 16px)")
@@ -119,7 +118,10 @@
                       -> Unit
                     .show error-plugin d! $ fn (text)
                       hint-fn $ Fn String $ -> Unit
-                      d! $ app.schema/Op :set-error $ app.schema/parse-error-text text
+                      match (app.schema/parse-error-text text)
+                        (:ok data)
+                          d! $ app.schema/Op :set-error data
+                        (:err _) &unit
                     , &unit
                 space-x 8
                 span $ {} (:inner-text |calcit.core)
@@ -380,7 +382,11 @@
                   match
                     js-await $ js-ffi.shared/response-text response
                     (:ok text)
-                      dispatch! $ app.schema/Op :set-error $ app.schema/parse-error-text text
+                      match (app.schema/parse-error-text text)
+                        (:ok data)
+                          dispatch! $ app.schema/Op :set-error data
+                        (:err message)
+                          do (hud! |error message) &unit
                     (:err error) (js/console.error "|Failed to load" error)
                   js/console.error "|Failed to load" response
               (:err error) (js/console.error "|Failed to load" error)
@@ -526,9 +532,13 @@
             :open :decode
         'parse-error-text $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-error-text (text)
-            decode-map-as (parse-cirru-edn text) app.schema/ErrorData
+            try
+              Result :ok $ decode-map-as (parse-cirru-edn text) app.schema/ErrorData
+              fn (error)
+                Result :err $ str "|Invalid error data: " error
           :examples $ []
-          :schema $ quote $ Fn String (-> app.schema/ErrorData)
+          :schema $ quote $ Fn String
+            -> $ Result app.schema/ErrorData String
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :error-data (Option :none) :show-core? true :cirru? false :states $ {} $ :cursor ([])

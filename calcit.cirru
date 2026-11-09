@@ -44,7 +44,9 @@
                       {}
                         :class-name $ str-spaced css/expand css/center css-main
                         :on-click $ fn (e d!) (click-load!)
-                      memof1-call comp-header (>> states :header) (:show-core? store)
+                      memof1-call-binary comp-header
+                        decode-map-as (>> states :header) (Map respo.schema/CoordKey Dynamic)
+                        :show-core? store
                       <> "|Click to load error info in Cirru Edn"
                 if dev?
                   Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control
@@ -170,7 +172,9 @@
                     :style $ {} (:width |20%)
                       :border-right $ str "|1px solid " $ hsl 0 0 70 0.2
                       :overflow :auto
-                  memof1-call comp-header (>> states :header) show-core?
+                  memof1-call-binary comp-header
+                    decode-map-as (>> states :header) (Map respo.schema/CoordKey Dynamic)
+                    , show-core?
                   list->
                     {}
                       :class-name $ str-spaced css/expand css/column
@@ -313,7 +317,7 @@
             respo.comp.inspect :refer $ comp-inspect
             app.config :refer $ dev?
             respo.util.format :refer $ hsl
-            memof.once :refer $ memof1-call
+            memof.once :refer $ memof1-call-binary
             respo-alerts.core :refer $ use-prompt
             calcit-theme.comp.expr :refer $ render-expr
             |cirru-color :refer $ generateHtml

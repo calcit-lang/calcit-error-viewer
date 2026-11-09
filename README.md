@@ -4,12 +4,12 @@
 
 ## 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对官方 **0.35.1**，协调安装完整正式图并重新生成 JS。
-使用正式 Theme **0.6.1**、Alerts **0.13.1**、Reel **0.9.2**、UI **0.15.1**、
-Respo **0.19.4**、JS-FFI **0.2.13**、Memof **0.0.46** 和传递 Router **0.12.1**。
+CLI 与 `@calcit/procs` 配对官方 **0.38.0**，按 `deps.cirru` 安装完整模块图并重新生成 JS。
+模块版本为 Theme **0.6.2**、Alerts **0.14.3**、Reel **0.11.0**、UI **0.15.2**、
+Respo **0.19.5**、JS-FFI **0.2.13**、Memof **0.0.47** 和传递 Router **0.12.2**。
 这是现代名义 RespoEvent 图，不能与旧 Map DOM handler 合同混装；三个 DOM handler 已同步。
 渲染入口使用 render-with!，组件构建与实际渲染同在 managed memo frame。
-DOM 回调使用宿主分发类型槽。Reel 原始操作在解码处保持开放，查看器游标和状态键统一使用 Respo 的 `CoordKey` union。
+页面操作使用具名 `Op`，开发面板和快捷键通过独立回调传递 `reel.typed/Control`。Alerts Prompt 的匿名状态事件只在渲染入口解码，查看器游标和状态键使用 Respo 的 `CoordKey` union。
 
 四处数值 spacer 保持原宽高；缺失帧的 `nothing` 原被误当作宽度，现在按文字显示，避免无效 CSS。
 原错误协议、参数开放边界、HUD 与保存顺序保持；未添加测试脚本或放宽类型门禁。
@@ -29,7 +29,7 @@ DOM 回调使用宿主分发类型槽。Reel 原始操作在解码处保持开�
 
 ## 开发与门禁
 
-使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.35.1。
+使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.38.0。
 项目使用 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`，不提交 `js-out`。
 
 ```sh
@@ -44,10 +44,10 @@ yarn dev
 ```
 
 `yarn dev` 编译一次并启动 Vite；持续编辑时另开终端运行 `calcit calcit.cirru js -w`。
-Caps 严格安装解析上述 8 个正式模块，并校验 Calcit / procs 均为 0.35.1。
+Caps 严格安装应解析上述 8 个模块，并校验 Calcit / procs 均为 0.38.0。
 `calcit.cirru` 是非 generated 的项目源码，保留文本 diff 供评审。
 
-## 验收范围
+## 0.35.1 历史验收
 
 完整正式 tag 图已通过 Caps strict、immutable、toolchain、全部 281 个定义、35 个原公开范围定义、
 完整 strict、原三项 Node 回归及构建，dynamic-method/deprecated 为零。原测试与断言保持。
@@ -61,7 +61,7 @@ Theme DOM active 事件、Load Text 多行提交和空栈占位，控制台无�
 ## 部署
 
 CI 只上传前端 `dist`，PR 资源使用 PR/run/attempt 独立前缀，上传及公开访问验证使用
-COS Action v1.2.0 内置能力，不另加 CDN 校验脚本。原 rsync 下载校验、SSH 主机校验和生产路径不变；
+COS Action v1.3.0 内置能力，不另加 CDN 校验脚本。原 rsync 下载校验、SSH 主机校验和生产路径不变；
 PR 不执行 main 的部署步骤。
 
 COS Action 同时检查生成 HTML 的同域脚本和样式引用；跨域共享资源、CSS 内引用和运行时加载不在该引用检查范围。

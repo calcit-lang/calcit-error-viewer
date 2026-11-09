@@ -1,17 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as clt from '../js-out/calcit.core.mjs';
-import { store } from '../js-out/app.schema.mjs';
+import { decode_op, Op, parse_error_text as parseErrorResult, store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
 import { comp_container, comp_header, comp_viewer, comp_entry } from '../js-out/app.comp.container.mjs';
-import { reel } from '../js-out/reel.schema.mjs';
+import { new_reel } from '../js-out/reel.typed.mjs';
 import { child_pair_value, component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
 import { make_string } from '../js-out/respo.render.html.mjs';
 
 const t = clt.init_tags(['states', 'cursor', 'data', 'viewer', 'pointer', 'event', 'click', 'children', 'some', 'toggle-core', 'toggle-cirru', 'show-core?', 'cirru?', 'set-error', 'message', 'stack', 'error-data', 'store']);
 const map = clt._$n__$M_;
 const list = clt._$L_;
-const op = clt._$o__$o_;
+const op = (...args) => clt._PCT__$o__$o_(Op, ...args);
+const parse_error_text = (text) => {
+  const result = parseErrorResult(text);
+  assert.equal(clt._$n_enum_$o_nth(result, 0), clt.to_tag('ok'));
+  return clt._$n_enum_$o_nth(result, 1);
+};
+const alertState = (...args) => clt.option_$o_unwrap(decode_op(clt._$o__$o_(t.states, ...args)));
 const field = (v, k) => clt.option_$o_unwrap(clt.get(v, k));
 const nth = (v, i) => clt.option_$o_unwrap(clt.nth(v, i));
 
@@ -37,15 +43,15 @@ test('nested and root state updates preserve the state tree, not a nested store'
   const nested = updater(store, op(t.states, list(t.viewer), map(t.pointer, 2)), 'nested', 1);
   assert.equal(field(field(field(field(nested, t.states), t.viewer), t.data), t.pointer), 2);
   assert.equal(clt.contains_$q_(field(nested, t.states), t.states), false);
-  const root = updater(nested, op(t.states, list(), map(t.pointer, 1)), 'root', 2);
+  const root = updater(nested, alertState(list(), map(t.pointer, 1)), 'root', 2);
   assert.equal(field(field(field(root, t.states), t.data), t.pointer), 1);
   assert.equal(clt.contains_$q_(field(root, t.states), t.viewer), true);
   const mixed = updater(root, op(t.states, list(t.viewer, 'item'), false), 'mixed', 3);
   assert.equal(field(field(field(field(mixed, t.states), t.viewer), 'item'), t.data), false);
   const mixedRoot = updater(mixed, op(t.states, list(2, 'item'), false), 'mixed-root', 4);
   assert.equal(field(field(field(field(mixedRoot, t.states), 2), 'item'), t.data), false);
-  assert.throws(() => updater(store, op(t.states, list(true), map()), 'invalid-key', 5), /decode-map-as/);
-  assert.throws(() => updater(store, op(t.states, 'invalid-cursor', map()), 'invalid', 6));
+  assert.throws(() => alertState(list(true), map()), /decode-map-as/);
+  assert.throws(() => alertState('invalid-cursor', map()));
 });
 
 test('core visibility click dispatches one Enum accepted by the updater', () => {
@@ -63,18 +69,21 @@ test('core visibility click dispatches one Enum accepted by the updater', () => 
 });
 
 test('loading error data preserves existing viewer state and visibility', () => {
+  const invalid = parseErrorResult('{} (:message |missing-stack)');
+  assert.equal(clt._$n_enum_$o_nth(invalid, 0), clt.to_tag('err'));
+  assert.match(clt._$n_enum_$o_nth(invalid, 1), /Invalid error data/);
   const initial = updater(store, op(t.states, list(t.viewer), map(t.pointer, 0)), 'state', 1);
-  const next = updater(initial, op(t['set-error'], map(t.message, 'fixture', t.stack, list())), 'load', 2);
+  const next = updater(initial, op(t['set-error'], parse_error_text('{} (:message |fixture) (:stack $ [])')), 'load', 2);
   assert.equal(field(clt.option_$o_unwrap(field(next, t['error-data'])), t.message), 'fixture');
   assert.equal(clt._$e_(field(initial, t.states), field(next, t.states)), true);
   assert.equal(field(next, t['show-core?']), true);
-  assert.match(make_string(comp_container(clt.assoc(reel, t.store, store))), /Error Viewer/);
-  assert.match(make_string(comp_container(clt.assoc(reel, t.store, next))), /Error Viewer/);
+  assert.match(make_string(comp_container(new_reel(store), () => {})), /Error Viewer/);
+  assert.match(make_string(comp_container(new_reel(next), () => {})), /Error Viewer/);
   const error = clt.option_$o_unwrap(field(next, t['error-data']));
   const emptyStack = make_string(comp_viewer(map(t.cursor, list()), error, true, false));
   assert.match(emptyStack, /fixture/);
   assert.doesNotMatch(emptyStack, /No args|>Cirru</);
-  const withFrame = updater(next, op(t['set-error'], clt.parse_cirru_edn('{} (:message |fixture)\n  :stack $ []\n    {} (:def |fixture/main!) (:kind :fn)\n      :args $ []\n      :code $ quote $ println |hello\n')), 'frame', 3);
+  const withFrame = updater(next, op(t['set-error'], parse_error_text('{} (:message |fixture)\n  :stack $ []\n    {} (:def |fixture/main!) (:kind :fn)\n      :args $ []\n      :code $ quote $ println |hello\n')), 'frame', 3);
   const framedError = clt.option_$o_unwrap(field(withFrame, t['error-data']));
   const selected = make_string(comp_viewer(map(t.cursor, list()), framedError, true, false));
   assert.match(selected, /fixture/);
@@ -92,7 +101,7 @@ test('loading error data preserves existing viewer state and visibility', () => 
     if (entry) assert.match(html, />fixture</);
   }
   // A leaf-root quote remains valid error source; use the public leaf/list API.
-  const leaf = updater(next, op(t['set-error'], clt.parse_cirru_edn('{} (:message |leaf-fixture)\n  :stack $ []\n    {} (:def |fixture/leaf) (:kind :fn)\n      :args $ []\n      :code $ quote leaf-source\n')), 'leaf', 4);
+  const leaf = updater(next, op(t['set-error'], parse_error_text('{} (:message |leaf-fixture)\n  :stack $ []\n    {} (:def |fixture/leaf) (:kind :fn)\n      :args $ []\n      :code $ quote leaf-source\n')), 'leaf', 4);
   const leafError = clt.option_$o_unwrap(field(leaf, t['error-data']));
   const leafHtml = make_string(comp_viewer(map(t.cursor, list()), leafError, true, true));
   assert.match(leafHtml, />leaf-source</);

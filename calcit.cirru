@@ -134,7 +134,7 @@
                       :color $ hsl 0 0 40
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                     d! $ app.schema/Op :toggle-core
                 .render error-plugin
@@ -175,18 +175,18 @@
                   memof1-call-binary comp-header
                     decode-map-as (>> states :header) (Map respo.schema/CoordKey Dynamic)
                     , show-core?
-                  list->
+                  keyed->
                     {}
                       :class-name $ str-spaced css/expand css/column
                       :style $ {} $ :padding "|20px 0 120px 0"
                     -> stack $ map-indexed $ fn (idx info)
-                      [] idx $ let
+                      let
                           selected? $ = idx $ :pointer state
                         if
                           and (not show-core?)
                             starts-with? (:def info) |calcit.core/
-                          comp-tiny-entry (:def info) selected?
-                          comp-entry (:def info) (:kind info) selected? $ fn (d!)
+                          keyed-element idx $ comp-tiny-entry (:def info) selected?
+                          keyed-component idx $ comp-entry (:def info) (:kind info) selected? $ fn (d!)
                             d! $ app.schema/Op :states cursor $ assoc state :pointer idx
                 div
                   {}
@@ -217,10 +217,10 @@
                             empty? $ :args target
                             div ({})
                               <> "|No args" $ {} (:font-family ui/font-fancy) (:padding "|0 9px")
-                            list-> ({})
+                            keyed-> ({})
                               -> (:args target)
                                 map-indexed $ fn (idx arg)
-                                  [] idx $ div
+                                  keyed-element idx $ div
                                     {} $ :class-name css/row-middle
                                     <> (str idx)
                                       {} (:margin "|0 6px") (:font-size 12)
@@ -311,7 +311,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
-            respo.core :refer $ defcomp defeffect <> >> div button textarea span input list-> pre a
+            respo.core :refer $ defcomp defeffect <> >> div button textarea span input keyed-> keyed-component keyed-element pre a
             respo.comp.space :refer $ space-x space-y
             reel.comp.reel :refer $ comp-typed-reel
             respo.comp.inspect :refer $ comp-inspect

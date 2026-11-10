@@ -86,9 +86,11 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
         set -euo pipefail
-        curl --fail --location --silent --show-error \
-          --output "$RUNNER_TEMP/rsync.tar.gz" \
-          https://download.samba.org/pub/rsync/src/rsync-3.5.0.tar.gz
+        curl_options=(--fail --location --silent --show-error
+          --retry 2 --retry-max-time 45 --connect-timeout 10 --max-time 20
+          --output "$RUNNER_TEMP/rsync.tar.gz")
+        curl "${curl_options[@]}" https://download.samba.org/pub/rsync/src/rsync-3.5.0.tar.gz ||
+          curl "${curl_options[@]}" https://ftp.belnet.be/mirror/ftp.samba.org/pub/rsync/rsyncftp/src/rsync-3.5.0.tar.gz
         echo "c7ffd1ef653e99540f661e47cb00b7f9cad1ee6b972399b16f93d672656e0d33  $RUNNER_TEMP/rsync.tar.gz" | sha256sum --check --strict
         tar -xzf "$RUNNER_TEMP/rsync.tar.gz" -C "$RUNNER_TEMP"
         cd "$RUNNER_TEMP/rsync-3.5.0"

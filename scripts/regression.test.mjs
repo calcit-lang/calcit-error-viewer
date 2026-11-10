@@ -107,3 +107,19 @@ test('loading error data preserves existing viewer state and visibility', () => 
   assert.match(leafHtml, />leaf-source</);
   assert.match(leafHtml, /No args/);
 });
+
+test('viewer renders heterogeneous stack arguments', () => {
+  const error = parse_error_text(`{} (:message |mixed-frame)
+  :stack $ []
+    {} (:def |fixture/mixed) (:kind :fn)
+      :args $ [] |argument-text 17 false
+        {} (:sample-key |sample-value)
+      :code $ quote |argument-source
+`);
+  const html = make_string(comp_viewer(map(t.cursor, list()), error, true, false));
+  for (const value of ['argument-text', '17', 'false']) {
+    assert.ok(html.includes(`>${value}<`), `expected rendered argument ${value}`);
+  }
+  assert.match(html, /sample-key.*sample-value/);
+  assert.doesNotMatch(html, /No args/);
+});

@@ -4,7 +4,7 @@
 
 ## 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对官方 **0.41.0**，按 `deps.cirru` 安装完整模块图并重新生成 JS。
+CLI 与 `@calcit/procs` 配对官方 **0.41.1**，按 `deps.cirru` 安装完整模块图并重新生成 JS。
 模块版本为 Theme **0.6.2**、Alerts **0.14.3**、Reel **0.11.0**、UI **0.15.2**、
 Respo **0.19.5**、JS-FFI **0.2.13**、Memof **0.0.47** 和传递 Router **0.12.2**。
 这是现代名义 RespoEvent 图，不能与旧 Map DOM handler 合同混装；三个 DOM handler 已同步。
@@ -29,7 +29,7 @@ Respo 派发槽和页面回调使用具名 `Op`，开发面板和快捷键通过
 
 ## 开发与门禁
 
-使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.41.0。
+使用 Node.js 24、Yarn 4.18.0、Vite 8.3.1 和 Calcit 0.41.1。
 项目使用 `calcit.cirru`、`deps.cirru`，不恢复 `compact.cirru` 或 `package.cirru`，不提交 `js-out`。
 
 ```sh
@@ -44,7 +44,7 @@ yarn dev
 ```
 
 `yarn dev` 编译一次并启动 Vite；持续编辑时另开终端运行 `calcit calcit.cirru js -w`。
-Caps 严格安装应解析上述 8 个模块，并校验 Calcit / procs 均为 0.41.0。
+Caps 严格安装应解析上述 8 个模块，并校验 Calcit / procs 均为 0.41.1。
 `calcit.cirru` 是非 generated 的项目源码，保留文本 diff 供评审。
 
 ## 0.35.1 历史验收

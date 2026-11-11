@@ -139,7 +139,7 @@
                     d! $ app.schema/Op :toggle-core
                 .render error-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) Bool (-> respo.schema/Element)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey V) Bool (-> respo.schema/Element) (:generics V)
         'comp-tiny-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tiny-entry (path selected?)
             div
@@ -156,13 +156,13 @@
                 cursor $ decode-map-as
                   .unwrap-or (get states :cursor) ([])
                   List respo.schema/CoordKey
-                state $ let
-                    raw-state $ .unwrap-or (get states :data)
-                      {} $ :pointer 0
-                  if (struct? raw-state)
-                    struct-match raw-state (app.schema/ViewerState checked checked)
-                      _ _ $ raise "|Expected app.schema/ViewerState"
-                    decode-map-as raw-state app.schema/ViewerState
+                state $ match (get states :data)
+                  (:none) (app.schema/ViewerState :pointer 0)
+                  (:some raw-state)
+                    if (struct? raw-state)
+                      struct-match raw-state (app.schema/ViewerState checked checked)
+                        _ _ $ raise "|Expected app.schema/ViewerState"
+                      decode-map-as raw-state app.schema/ViewerState
                 stack $ :stack error-data
                 target-option $ get stack $ :pointer state
               div
@@ -255,7 +255,7 @@
                               <> $ .unwrap $ .leaf-text (:code target)
                     div ({}) (<> |nothing)
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey Dynamic) schema/ErrorData Bool Bool (-> respo.schema/Component)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey V) schema/ErrorData Bool Bool (-> respo.schema/Component) (:generics V)
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
             {} $ |& $ merge

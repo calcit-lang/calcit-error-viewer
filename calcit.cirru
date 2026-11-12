@@ -363,20 +363,7 @@
             reset! *reel $ typed/record-op updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/Op (-> Unit) (:features :js-ffi)
-        'dispatch-render-event! $ %{} 'CodeEntry (:doc "|Alerts Prompt 0.14.3 在渲染边界仍发送匿名状态事件。")
-          :code $ quote $ defn dispatch-render-event! (raw-op)
-            if (enum? raw-op)
-              if
-                = (enum-definition raw-op) (Some app.schema/Op)
-                dispatch! $ decode-map-as raw-op 'app.schema/Op
-                match (schema/decode-op raw-op)
-                  (:some action) (dispatch! action)
-                  (:none) (eprintln "|Unknown op:" raw-op)
-              raise "|Expected Enum operation"
-            , &unit
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi) (:open :decode)
+          :schema $ quote $ Fn schema/Op (-> Unit) (:features :js-ffi :state)
         'fetch-error-file! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-error-file! () (hint-fn Async)
             match
@@ -396,7 +383,7 @@
               (:err error) (js/console.error "|Failed to load" error)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -422,7 +409,7 @@
               , &unit
             println "|App started."
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             .unwrap $ respo.ffi.browser/query-selector |.app
@@ -433,7 +420,7 @@
             reset! *reel $ typed/apply-control updater @*reel control
             , &unit
           :examples $ []
-          :schema $ quote $ Fn typed/Control (-> Unit)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
@@ -441,7 +428,7 @@
               format-cirru-edn $ :store @*reel
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -452,14 +439,18 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
               fn () $ comp-container @*reel on-control!
-              , dispatch-render-event!
+              fn (raw-op)
+                match (schema/decode-op raw-op)
+                  (:some action) (dispatch! action)
+                  (:none) (eprintln "|Unknown op:" raw-op)
+                , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             browser/set-timeout!
@@ -518,14 +509,19 @@
           :examples $ []
           :schema $ quote StructDef
         'decode-op $ %{} 'CodeEntry
-          :doc "|Decodes the anonymous state event emitted by Alerts."
+          :doc "|Decode a local nominal operation or the anonymous state event emitted by Alerts."
           :code $ quote $ defn decode-op (raw)
-            match raw
-              (:states cursor data)
-                Some $ Op :states
-                  decode-map-as cursor $ List respo.schema/CoordKey
-                  , data
-              _ None
+            if (enum? raw)
+              if
+                = (enum-definition raw) (Some Op)
+                Some $ decode-map-as raw Op
+                match raw
+                  (:states cursor data)
+                    Some $ Op :states
+                      decode-map-as cursor $ List respo.schema/CoordKey
+                      , data
+                  _ None
+              raise "|Expected Enum operation"
           :examples $ []
           :schema $ quote $ Fn AnyEnum
             -> $ Option Op

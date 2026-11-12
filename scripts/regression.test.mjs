@@ -61,7 +61,7 @@ test('core visibility click dispatches one Enum accepted by the updater', () => 
   handler(null, (...args) => {
     assert.equal(args.length, 1);
     assert.equal(clt._$n_enum_$o_nth(args[0], 0), t['toggle-core']);
-    next = updater(store, args[0], 'click', 1);
+    next = updater(store, clt.option_$o_unwrap(decode_op(args[0])), 'click', 1);
   });
   assert.equal(field(next, t['show-core?']), false);
   next = updater(next, op(t['toggle-cirru']), 'cirru', 2);

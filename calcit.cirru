@@ -72,7 +72,7 @@
                     {}
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn app.schema/Op $ -> Unit
+                      Fn schema/Op $ -> Unit
                       -> Unit
                     on-select d!
                 div
@@ -116,7 +116,7 @@
                 a $ {} (:inner-text "|Load Text") (:class-name css/link) (:id |load)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn app.schema/Op $ -> Unit
+                      Fn schema/Op $ -> Unit
                       -> Unit
                     .show error-plugin d! $ fn (text)
                       hint-fn $ Fn String $ -> Unit
@@ -134,7 +134,7 @@
                       :color $ hsl 0 0 40
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn app.schema/Op $ -> Unit
+                      Fn schema/Op $ -> Unit
                       -> Unit
                     d! $ app.schema/Op :toggle-core
                 .render error-plugin

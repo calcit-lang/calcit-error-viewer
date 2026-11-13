@@ -523,9 +523,9 @@
                   _ None
               raise "|Expected Enum operation"
           :examples $ []
-          :schema $ quote $ Fn AnyEnum
+          :schema $ quote $ Fn Input
             -> $ Option Op
-            :open :decode
+            :generics Input
         'parse-error-text $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-error-text (text)
             try

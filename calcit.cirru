@@ -5,7 +5,7 @@
   :entries $ {} $ :default
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |memof/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/ |js-ffi/
+      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |alerts.calcit/ |calcit-theme.calcit/ |js-ffi/
       :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
@@ -58,6 +58,7 @@
           :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
+            :features :state
         'comp-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-entry (entry kind selected? on-select)
             let
@@ -255,7 +256,7 @@
                               <> $ .unwrap $ .leaf-text (:code target)
                     div ({}) (<> |nothing)
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey V) schema/ErrorData Bool Bool (-> respo.schema/Component) (:generics V)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey V) schema/ErrorData Bool Bool (-> respo.schema/Component) (:generics V) (:features :state)
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
             {} $ |& $ merge
@@ -270,6 +271,14 @@
               :cursor :pointer
           :examples $ []
           :schema $ quote String
+        'memof1-call-binary $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn memof1-call-binary (f first-arg second-arg)
+            unsafe-coerce (respo.memo/memo-value-by :header f first-arg second-arg) respo.schema/Element
+          :examples $ []
+          :schema $ quote $ Fn
+            Fn (Map respo.schema/CoordKey Dynamic) Bool $ -> respo.schema/Element
+            Map respo.schema/CoordKey Dynamic
+            , Bool (-> respo.schema/Element) (:features :erased-cache :state)
         'style-color-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-fn
             {} $ |& $ {}
@@ -317,7 +326,6 @@
             respo.comp.inspect :refer $ comp-inspect
             app.config :refer $ dev?
             respo.util.format :refer $ hsl
-            memof.once :refer $ memof1-call-binary
             respo-alerts.core :refer $ use-prompt
             calcit-theme.comp.expr :refer $ render-expr
             |cirru-color :refer $ generateHtml

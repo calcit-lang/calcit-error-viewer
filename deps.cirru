@@ -7,4 +7,3 @@
     |Respo/respo-ui.calcit |0.15.2
     |Respo/respo.calcit |0.19.5
     |calcit-lang/js-ffi |0.2.13
-    |calcit-lang/memof |0.0.50

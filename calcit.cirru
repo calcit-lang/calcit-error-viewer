@@ -56,9 +56,9 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :state
+            :features :io :state
         'comp-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-entry (entry kind selected? on-select)
             let
@@ -140,7 +140,7 @@
                     d! $ app.schema/Op :toggle-core
                 .render error-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey V) Bool (-> respo.schema/Element) (:generics V)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey V) Bool (-> respo.schema/Element) (:generics V) (:features :io :state)
         'comp-tiny-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tiny-entry (path selected?)
             div
@@ -256,7 +256,7 @@
                               <> $ .unwrap $ .leaf-text (:code target)
                     div ({}) (<> |nothing)
           :examples $ []
-          :schema $ quote $ Fn (Map respo.schema/CoordKey V) schema/ErrorData Bool Bool (-> respo.schema/Component) (:generics V) (:features :state)
+          :schema $ quote $ Fn (Map respo.schema/CoordKey V) schema/ErrorData Bool Bool (-> respo.schema/Component) (:generics V) (:features :io :state)
         'css-args-area $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-args-area
             {} $ |& $ merge
@@ -276,9 +276,9 @@
             unsafe-coerce (respo.memo/memo-value-by :header f first-arg second-arg) respo.schema/Element
           :examples $ []
           :schema $ quote $ Fn
-            Fn (Map respo.schema/CoordKey Dynamic) Bool $ -> respo.schema/Element
+            Fn (Map respo.schema/CoordKey Dynamic) Bool (-> respo.schema/Element) (:features :io :state)
             Map respo.schema/CoordKey Dynamic
-            , Bool (-> respo.schema/Element) (:features :erased-cache :state)
+            , Bool (-> respo.schema/Element) (:features :erased-cache :io :state)
         'style-color-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-fn
             {} $ |& $ {}
@@ -467,9 +467,9 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn Number
-            Fn $ -> Unit
+            Fn (-> Unit) (:features :js-ffi :state)
             -> Unit
-            :features :js-ffi
+            :features :js-ffi :state
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require

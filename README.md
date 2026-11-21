@@ -5,8 +5,8 @@
 ## 使用者需要注意
 
 CLI 与 `@calcit/procs` 配对官方 **0.44.0**，按 `deps.cirru` 安装完整模块图并重新生成 JS。
-模块版本为 Theme **0.6.4**、Alerts **0.14.6**、Reel **0.11.3**、UI **0.15.5**、
-Respo **0.19.11**、JS-FFI **0.2.18** 和传递 Router **0.12.9**。
+模块版本为 Theme **0.6.5**、Alerts **0.14.8**、Reel **0.11.5**、UI **0.15.7**、
+Respo **0.19.13**、JS-FFI **0.2.19** 和传递 Router **0.12.11**。
 这是现代名义 RespoEvent 图，不能与旧 Map DOM handler 合同混装；三个 DOM handler 已同步。
 渲染入口使用 render-with!，组件构建与实际渲染同在 managed memo frame。
 Respo 派发槽和页面回调使用具名 `Op`，开发面板和快捷键通过独立回调传递 `reel.typed/Control`。Alerts Prompt 的匿名状态事件只在渲染入口解码，查看器游标和状态键使用 Respo 的 `CoordKey` union。

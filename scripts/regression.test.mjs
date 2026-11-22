@@ -143,3 +143,20 @@ test('header memo retains the Element on cache hits and recomputes for changed a
     finish_memo_frame_$x_();
   } finally { reset_component_caches_$x_(); }
 });
+
+test('header memo rejects invalid cached results on computation and cache hit', () => {
+  for (const value of [null, store]) {
+    let calls = 0;
+    const build = () => { calls++; return value; };
+    const states = map(t.cursor, list());
+    reset_component_caches_$x_();
+    try {
+      begin_memo_frame_$x_();
+      for (let i = 0; i < 2; i++) {
+        assert.throws(() => memof1_call_binary(build, states, false), /Expected-memo-element/);
+      }
+      assert.equal(calls, 1);
+      finish_memo_frame_$x_();
+    } finally { reset_component_caches_$x_(); }
+  }
+});

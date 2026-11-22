@@ -273,7 +273,12 @@
           :schema $ quote String
         'memof1-call-binary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn memof1-call-binary (f first-arg second-arg)
-            unsafe-coerce (respo.memo/memo-value-by :header f first-arg second-arg) respo.schema/Element
+            let
+                value $ respo.memo/memo-value-by :header f first-arg second-arg
+              if
+                and (struct? value) (&struct:matches? value respo.schema/Element)
+                assert-type value respo.schema/Element
+                raise |Expected-memo-element
           :examples $ []
           :schema $ quote $ Fn
             Fn (Map respo.schema/CoordKey Dynamic) Bool (-> respo.schema/Element) (:features :io :state)

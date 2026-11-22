@@ -3,7 +3,8 @@ import test from 'node:test';
 import * as clt from '../js-out/calcit.core.mjs';
 import { decode_op, Op, parse_error_text as parseErrorResult, store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
-import { comp_container, comp_header, comp_viewer, comp_entry } from '../js-out/app.comp.container.mjs';
+import { comp_container, comp_header, comp_viewer, comp_entry, memof1_call_binary } from '../js-out/app.comp.container.mjs';
+import { begin_memo_frame_$x_, finish_memo_frame_$x_, reset_component_caches_$x_ } from '../js-out/respo.memo.mjs';
 import { new_reel } from '../js-out/reel.typed.mjs';
 import { child_pair_value, component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
 import { make_string } from '../js-out/respo.render.html.mjs';
@@ -122,4 +123,40 @@ test('viewer renders heterogeneous stack arguments', () => {
   }
   assert.match(html, /sample-key.*sample-value/);
   assert.doesNotMatch(html, /No args/);
+});
+
+
+test('header memo retains the Element on cache hits and recomputes for changed arguments', () => {
+  let calls = 0;
+  const build = (states, showCore) => { calls++; return comp_header(states, showCore); };
+  const states = map(t.cursor, list());
+  reset_component_caches_$x_();
+  try {
+    begin_memo_frame_$x_();
+    const first = memof1_call_binary(build, states, false);
+    const hit = memof1_call_binary(build, states, false);
+    assert.equal(hit, first);
+    assert.equal(calls, 1);
+    const changed = memof1_call_binary(build, states, true);
+    assert.notEqual(changed, first);
+    assert.equal(calls, 2);
+    finish_memo_frame_$x_();
+  } finally { reset_component_caches_$x_(); }
+});
+
+test('header memo rejects invalid cached results on computation and cache hit', () => {
+  for (const value of [null, store]) {
+    let calls = 0;
+    const build = () => { calls++; return value; };
+    const states = map(t.cursor, list());
+    reset_component_caches_$x_();
+    try {
+      begin_memo_frame_$x_();
+      for (let i = 0; i < 2; i++) {
+        assert.throws(() => memof1_call_binary(build, states, false), /Expected-memo-element/);
+      }
+      assert.equal(calls, 1);
+      finish_memo_frame_$x_();
+    } finally { reset_component_caches_$x_(); }
+  }
 });

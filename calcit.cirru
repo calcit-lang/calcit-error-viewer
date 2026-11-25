@@ -281,9 +281,9 @@
                 raise |Expected-memo-element
           :examples $ []
           :schema $ quote $ Fn
-            Fn (Map respo.schema/CoordKey Dynamic) Bool (-> respo.schema/Element) (:features :io :state)
-            Map respo.schema/CoordKey Dynamic
-            , Bool (-> respo.schema/Element) (:features :erased-cache :io :state)
+            Fn (Map respo.schema/CoordKey V) Bool (-> respo.schema/Element) (:features :io :state)
+            Map respo.schema/CoordKey V
+            , Bool (-> respo.schema/Element) (:generics V) (:features :erased-cache :io :state)
         'style-color-fn $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-color-fn
             {} $ |& $ {}
